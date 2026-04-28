@@ -155,3 +155,97 @@ Rules:
             return (response.text or "").strip()
         except Exception as e:
             return f"API error — could not generate answer. ({type(e).__name__}: {e})"
+
+    # -----------------------------------------------------------
+    # Planner: decompose project into phases
+    # -----------------------------------------------------------
+
+    def decompose_into_phases(self, context):
+        """
+        Takes the assembled project context and returns a list of
+        phase names representing the logical stages of the project.
+        Returns a list of strings, e.g. ["Project Setup", "Database Design", ...]
+        """
+        prompt = f"""You are a senior software engineer helping a beginner plan a coding project.
+
+Given the following project context, break the project into 4-6 logical implementation phases.
+Return ONLY a numbered list of short phase names. Nothing else. No descriptions, no explanations.
+
+Example output:
+1. Project Setup and Environment
+2. Database Design
+3. Authentication
+4. Core API Endpoints
+5. Testing and Error Handling
+6. Deployment
+
+Project context:
+{context}
+"""
+        try:
+            response = self.client.models.generate_content(
+                model=GEMINI_MODEL_NAME,
+                contents=prompt
+            )
+            raw = (response.text or "").strip()
+            logger.info("Raw phases from LLM: %s", raw)
+
+            # Parse numbered list into a clean list of phase names
+            phases = []
+            for line in raw.splitlines():
+                line = line.strip()
+                if line and line[0].isdigit():
+                    # Strip leading "1. " or "1) "
+                    phase = line.split(".", 1)[-1].split(")", 1)[-1].strip()
+                    if phase:
+                        phases.append(phase)
+            return phases
+
+        except Exception as e:
+            logger.error("Phase decomposition failed: %s", str(e), exc_info=True)
+            return ["Project Setup", "Core Features", "Testing and Error Handling", "Deployment"]
+
+    # -----------------------------------------------------------
+    # Planner: generate steps for a single phase
+    # -----------------------------------------------------------
+
+    def generate_phase_steps(self, phase, context, snippets):
+        """
+        Generates concrete, beginner-friendly implementation steps for a
+        single project phase, grounded in the retrieved documentation snippets.
+        """
+        if snippets:
+            context_blocks = "\n\n".join(f"[{fname}]\n{text}" for fname, text in snippets)
+        else:
+            context_blocks = "No specific documentation retrieved for this phase."
+
+        prompt = f"""You are a senior software engineer mentoring a beginner developer.
+
+Project context:
+{context}
+
+You are writing the implementation steps for this phase: {phase}
+
+Use the documentation below to ground your steps in real practices.
+If the documentation does not cover something needed for this phase, say "Research needed: [topic]" as a step.
+
+Documentation:
+{context_blocks}
+
+Write 3-5 concrete, numbered steps for this phase.
+For each step:
+- Say exactly what to do
+- Explain in one sentence WHY it matters
+- Keep language beginner-friendly — avoid jargon without explanation
+
+Return only the steps. No intro, no summary.
+"""
+        try:
+            response = self.client.models.generate_content(
+                model=GEMINI_MODEL_NAME,
+                contents=prompt
+            )
+            return (response.text or "").strip()
+        except Exception as e:
+            logger.error("Phase step generation failed for '%s': %s", phase, str(e), exc_info=True)
+            return f"Could not generate steps for this phase. ({type(e).__name__}: {e})"

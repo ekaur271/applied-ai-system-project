@@ -23,6 +23,7 @@ logging.basicConfig(
 from docubot import DocuBot
 from llm_client import GeminiClient
 from dataset import SAMPLE_QUERIES
+from planner import run_planner
 
 
 def try_create_llm_client():
@@ -55,6 +56,10 @@ def choose_mode(has_llm):
         print("  3) RAG (retrieval + LLM)")
     else:
         print("  3) RAG (unavailable, no GEMINI_API_KEY)")
+    if has_llm:
+        print("  4) Project Planner (plan a new coding project)")
+    else:
+        print("  4) Project Planner (unavailable, no GEMINI_API_KEY)")
     print("  q) Quit")
 
     choice = input("Enter choice: ").strip().lower()
@@ -158,8 +163,10 @@ def main():
             run_retrieval_only_mode(bot)
         elif choice == "3":
             run_rag_mode(bot, has_llm)
+        elif choice == "4":
+            run_planner(bot, llm_client)
         else:
-            print("\nUnknown choice. Please pick 1, 2, 3, or q.\n")
+            print("\nUnknown choice. Please pick 1, 2, 3, 4, or q.\n")
 
 
 if __name__ == "__main__":
