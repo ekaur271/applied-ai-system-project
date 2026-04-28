@@ -42,7 +42,7 @@ class GeminiClient:
         prompt = (
             f'A beginner developer asked: "{query}"\n\n'
             "Rewrite this as a short list of precise technical keywords a senior developer would use. "
-            "Return only the keywords, no explanation, no punctuation, no bullet points."
+            "Use lowercase words only, separated by spaces. No CamelCase, no punctuation, no bullet points, no explanation."
         )
         try:
             expanded = self._generate(prompt)
@@ -86,6 +86,35 @@ Question: {query}"""
         )
 
         prompt = f"""You are a senior software engineer mentoring a beginner developer.
+
+Here is an example of a project description and the correct plan format:
+
+---EXAMPLE INPUT---
+I want to build a simple to-do list app. Users can create an account, add tasks, mark them done, and delete them. Stack is Python and Flask with a SQLite database. Done means a user can sign up, log in, and manage their tasks through a basic HTML page.
+
+---EXAMPLE OUTPUT---
+## Phase 1: Project Setup
+1. Initialize Flask project structure with an app factory — Keeps configuration flexible and makes the app easier to test.
+2. Set up SQLite database connection — Gives the app a place to persist user and task data between sessions.
+3. Create a requirements.txt and .env file — Documents dependencies and keeps secrets out of version control.
+
+## Phase 2: User Authentication
+1. Define a User model with hashed password storage — Protects passwords if the database is ever compromised.
+2. Build registration and login endpoints — Lets users create accounts and prove their identity.
+3. Implement session or JWT tokens — Keeps users logged in across requests without hitting the database every time.
+
+## Phase 3: Task Management
+1. Define a Task model linked to a User — Ensures each task belongs to one user and can be queried efficiently.
+2. Build endpoints to create, complete, and delete tasks — These are the three core actions the MVP requires.
+3. Add input validation on task creation — Prevents empty or oversized inputs from corrupting the database.
+
+## Phase 4: Frontend and Deployment
+1. Create HTML templates for login, registration, and task list — Gives users a simple interface to interact with the app.
+2. Wire form submissions to backend endpoints with basic JavaScript — Connects the UI to the API without a full frontend framework.
+3. Prepare environment variables for production — Ensures the app can be deployed securely without hardcoded secrets.
+---END EXAMPLE---
+
+Now generate a plan in exactly this format for the project below.
 
 Project description:
 {project_paragraph}

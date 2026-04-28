@@ -226,6 +226,9 @@ The project starter was built around the Google Gemini API, and it provides a fr
 - What didn't work: retrieval sometimes pulled `requirements-and-planning.md` and `design-patterns.md` for unrelated queries because those docs contain many general SWE terms
 - Edge cases: very short or vague project descriptions produce more generic plans with fewer doc-grounded steps
 
+**Few-shot prompting impact**
+The `generate_full_plan` prompt includes a complete worked example (a to-do app) before the user's actual project. Without the example, the model occasionally produced inconsistent formatting — mixing prose paragraphs with numbered lists, or omitting the "why it matters" rationale on some steps. With the example in the prompt, every phase follows the same structure: numbered steps, one-line rationale each, "Research needed" flags when docs are insufficient. The example anchors the output format without restricting content, so the model still generates project-specific steps grounded in retrieved docs.
+
 **What I learned**
 IDF weighting made a significant difference in retrieval quality — treating all words equally caused common filler words to dominate scores. The vocabulary mismatch problem is real: the 4 remaining misses all stem from beginners not knowing the technical term for what they want. LLM query expansion is the right architectural response to this, and it works well in practice.
 
