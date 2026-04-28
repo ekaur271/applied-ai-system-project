@@ -28,55 +28,32 @@ QUESTIONS = [
 
 def ask_planning_questions():
     """
-    Walk the user through the 9 planning questions.
-    Returns a dict mapping question keys to user answers.
+    Asks the user to describe their project in one paragraph.
+    Returns the paragraph as a string.
     """
     print("\n" + "=" * 60)
     print("DocuBot Project Planner")
     print("=" * 60)
-    print("\nLet's figure out what you're building.")
-    print("Answer each question as honestly as you can — even rough answers help.\n")
+    print("\nDescribe your project in a paragraph. Cover:")
+    print("  - What problem it solves and who it's for")
+    print("  - What a user does in the app (the core flow)")
+    print("  - Your MVP — the simplest version that proves the idea")
+    print("  - Your tech stack (or say 'suggest one')")
+    print("  - What done looks like to you")
+    print()
 
-    answers = {}
-    for i, (key, question) in enumerate(QUESTIONS, 1):
-        print(f"Q{i}: {question}")
-        answer = input("    > ").strip()
-        answers[key] = answer if answer else "Not specified"
-        print()
-
-    return answers
+    paragraph = input("Your project: ").strip()
+    return paragraph if paragraph else "No description provided."
 
 
-def assemble_paragraph(answers):
+def show_summary_and_confirm(paragraph):
     """
-    Turns the user's 9 answers into one coherent project description paragraph.
-    This is used as both the retrieval query and the LLM context.
-    """
-    return (
-        f"I want to build something that solves this problem: {answers.get('problem', 'not specified')}. "
-        f"The target users are {answers.get('users', 'not specified')}. "
-        f"Here is what a user does in the app: {answers.get('core_loop', 'not specified')}. "
-        f"The MVP is: {answers.get('mvp', 'not specified')}. "
-        f"The tech stack is: {answers.get('stack', 'not specified')}. "
-        f"Technical requirements include: {answers.get('technical', 'not specified')}. "
-        f"The riskiest part is: {answers.get('risks', 'not specified')}. "
-        f"I can cut: {answers.get('cuts', 'not specified')} if needed. "
-        f"Done means: {answers.get('done', 'not specified')}."
-    )
-
-
-def show_summary_and_confirm(answers):
-    """
-    Shows the user a summary of their answers and asks if they're ready
-    to generate the plan.
+    Shows the user their paragraph back and asks if they're ready to generate.
     """
     print("\n" + "=" * 60)
-    print("Here's what you told me:")
+    print("Here's what you described:")
     print("=" * 60)
-    print(f"  Problem:   {answers['problem']}")
-    print(f"  MVP:       {answers['mvp']}")
-    print(f"  Stack:     {answers['stack']}")
-    print(f"  Done when: {answers['done']}")
+    print(paragraph)
     print()
 
     choice = input("Ready to generate your plan? (yes / no): ").strip().lower()
@@ -113,15 +90,14 @@ def run_planner(bot, llm_client):
         print("\nThe planner requires a Gemini API key. Please set GEMINI_API_KEY in your .env file.\n")
         return
 
-    # Stage 1: planning conversation
-    answers = ask_planning_questions()
+    # Stage 1: get project description
+    project_paragraph = ask_planning_questions()
 
-    if not show_summary_and_confirm(answers):
+    if not show_summary_and_confirm(project_paragraph):
         print("\nNo problem — come back when you're ready.\n")
         return
 
-    # Stage 2: assemble paragraph and generate plan
-    project_paragraph = assemble_paragraph(answers)
+    # Stage 2: generate plan
     plan = generate_plan(project_paragraph, bot, llm_client)
 
     print("=" * 60)

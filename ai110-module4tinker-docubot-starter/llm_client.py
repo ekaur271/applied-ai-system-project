@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 # Central place to update the model name if needed.
 # You can swap this for a different Gemini model in the future.
-GEMINI_MODEL_NAME = "gemini-2.0-flash"
+GEMINI_MODEL_NAME = "gemini-2.5-flash"
 
 
 class GeminiClient:
@@ -43,6 +43,22 @@ class GeminiClient:
             )
 
         self.client = genai.Client(api_key=api_key)
+        self._verify_model()
+
+    def _verify_model(self):
+        """Test the model with a minimal call at startup so we fail fast with a clear message."""
+        try:
+            response = self.client.models.generate_content(
+                model=GEMINI_MODEL_NAME,
+                contents="Say the word OK and nothing else."
+            )
+            logger.info("Model check passed: %s", (response.text or "").strip())
+        except Exception as e:
+            raise RuntimeError(
+                f"Model '{GEMINI_MODEL_NAME}' is not available on your account.\n"
+                f"Error: {e}\n"
+                f"Try updating GEMINI_MODEL_NAME in llm_client.py."
+            )
 
     # -----------------------------------------------------------
     # Query expansion: rewrite beginner query using technical terms
