@@ -233,13 +233,17 @@ IDF weighting made a significant difference in retrieval quality — treating al
 
 ## Reflection
 
-Building this project made me realize how much the quality of your knowledge base determines the quality of your RAG system. Clean, focused documentation makes retrieval work well — messy or inconsistent data would have made the whole pipeline unreliable. That was something I hadn't fully appreciated before actually building it.
+I used AI heavily throughout this project — for system design, implementation, debugging, and iterating on prompts. It helped me move fast and think through architectural decisions I wouldn't have landed on as quickly alone.
 
-I also didn't expect word weighting to matter as much as it did. Early on I treated every word equally, and retrieval was clearly pulling the wrong documents. Switching to IDF weighting — where rare, domain-specific words count more than common filler words — made a measurable difference in hit rate. It's a simple idea but the impact was immediate.
+One suggestion that worked really well was IDF weighting for retrieval scoring. The initial implementation treated every query word equally, which caused common filler words like "how" and "do" to dominate scores and pull the wrong documents. Switching to IDF — where rare, domain-specific words contribute more — improved the hit rate measurably and fixed most of the retrieval failures.
 
-Grounding AI output in real sources is a significant shift in how trustworthy the output feels. On the open internet there's a lot of bad code and outdated advice, so having the model answer strictly from a curated knowledge base means the plan it produces actually reflects good practices. The tradeoff is that you need clean, well-structured data to start with — which is its own work.
+One suggestion that didn't work was the multi-call per-phase architecture, where the system made a separate LLM call for each project phase. In theory it gave each phase its own focused retrieved context. In practice it sent the full context block with every call, exhausted the per-minute token quota after four phases, and crashed. The fix was to collapse everything into a single retrieval pass and one LLM call — simpler and more reliable.
 
-If I had more time, I'd want to take the project plan the system generates and actually scaffold the implementation — create the folder structure, starter files, and a basic README for the described project automatically. Essentially turning the plan into a working starting point rather than just a document.
+Other real snags along the way: the starter project had a nested `.git` folder that caused it to be committed as a broken submodule instead of actual files; the model kept changing as `gemma-3-27b-it` hit rate limits, `gemini-2.0-flash` returned 404s on the free tier, and we eventually settled on `gemini-2.5-flash`.
+
+Building this made me realize how much the quality of your knowledge base determines RAG output quality. Clean, focused docs make retrieval work — messy data would have made the whole pipeline unreliable. I also didn't expect word weighting to matter as much as it did, or how real the vocabulary mismatch problem is between beginner phrasing and technical documentation.
+
+The biggest limitation is that the planner only knows what's in the knowledge base. If someone describes a project that needs a technology not covered by the docs, the plan will have gaps. If I had more time, I'd want to actually scaffold the generated plan into a real project — create the folder structure, starter files, and initial README automatically rather than just producing a document.
 
 
 ---
