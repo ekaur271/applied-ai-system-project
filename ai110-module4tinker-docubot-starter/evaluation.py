@@ -25,13 +25,31 @@ from dataset import SAMPLE_QUERIES
 #   evaluation expects AUTH.md to appear in the retrieval results.
 #
 EXPECTED_SOURCES = {
-    "auth token": ["AUTH.md"],
-    "environment variables": ["AUTH.md"],
-    "database": ["DATABASE.md"],
-    "users": ["API_REFERENCE.md"],
-    "projects": ["API_REFERENCE.md"],
-    "refresh": ["AUTH.md"],
-    "users table": ["DATABASE.md"],
+    "jwt": ["auth.md"],
+    "authentication": ["auth.md"],
+    "environment variables": ["environment-and-config.md"],
+    "commit to github": ["version-control.md"],
+    "project folders": ["project-structure.md"],
+    "structure": ["project-structure.md"],
+    "database": ["database.md"],
+    "rest api": ["api-design.md"],
+    "api endpoints": ["api-design.md"],
+    "unit tests": ["testing.md"],
+    "integration tests": ["testing.md"],
+    "errors": ["error-handling-and-logging.md"],
+    "exceptions": ["error-handling-and-logging.md"],
+    "git": ["version-control.md"],
+    "branching": ["version-control.md"],
+    "scalable": ["scalability.md"],
+    "security": ["security.md"],
+    "vulnerabilities": ["security.md"],
+    "deploy": ["deployment.md"],
+    "production": ["deployment.md"],
+    "design patterns": ["design-patterns.md"],
+    "ai model": ["ai-integration.md"],
+    "readme": ["documentation.md"],
+    "mvp": ["requirements-and-planning.md"],
+    "scope": ["requirements-and-planning.md"],
 }
 
 

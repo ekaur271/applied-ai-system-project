@@ -8,7 +8,11 @@ Core DocuBot class responsible for:
 """
 
 import os
+import re
 import glob
+import logging
+
+logger = logging.getLogger(__name__)
 
 class DocuBot:
     def __init__(self, docs_folder="docs", llm_client=None):
@@ -18,6 +22,7 @@ class DocuBot:
         """
         self.docs_folder = docs_folder
         self.llm_client = llm_client
+        self.idf = {}  # Populated by build_index
 
         # Load documents into memory
         self.documents = self.load_documents()  # List of (filename, text)
@@ -50,21 +55,25 @@ class DocuBot:
 
     def build_index(self, documents):
         """
-        TODO (Phase 1):
-        Build a tiny inverted index mapping lowercase words to the documents
-        they appear in.
+        Build an inverted index mapping lowercase words to the filenames that contain them.
 
-        Example structure:
-        {
-            "token": ["AUTH.md", "API_REFERENCE.md"],
-            "database": ["DATABASE.md"]
-        }
-
-        Keep this simple: split on whitespace, lowercase tokens,
-        ignore punctuation if needed.
+        Design: strip punctuation, lowercase all tokens, deduplicate per document
+        so a word appearing 100 times in one file doesn't skew the index structure.
         """
         index = {}
-        # TODO: implement simple indexing
+        for filename, text in documents:
+            words = re.sub(r"[^\w\s]", " ", text.lower()).split()
+            for word in set(words):  # set() deduplicates — each word listed once per doc
+                if word not in index:
+                    index[word] = []
+                index[word].append(filename)
+
+        # Precompute IDF weights: rare words score higher than common ones
+        # IDF = total docs / number of docs containing the word
+        total = len(documents)
+        self.idf = {word: total / len(filenames) for word, filenames in index.items()}
+
+        logger.info("Built index with %d unique tokens from %d documents", len(index), len(documents))
         return index
 
     # -----------------------------------------------------------
@@ -73,27 +82,57 @@ class DocuBot:
 
     def score_document(self, query, text):
         """
-        TODO (Phase 1):
-        Return a simple relevance score for how well the text matches the query.
+        Score a document by counting how many unique query words appear in its text.
 
-        Suggested baseline:
-        - Convert query into lowercase words
-        - Count how many appear in the text
-        - Return the count as the score
+        Design: equal weight per matching word — simple, transparent, and sufficient
+        for a focused knowledge base where each doc covers one clear topic.
         """
-        # TODO: implement scoring
-        return 0
+        query_words = set(re.sub(r"[^\w\s]", " ", query.lower()).split())
+        text_lower = text.lower()
+        # Weight each matching word by its IDF score — rare words contribute more
+        return sum(self.idf.get(word, 1.0) for word in query_words if word in text_lower)
 
     def retrieve(self, query, top_k=3):
         """
-        TODO (Phase 1):
-        Use the index and scoring function to select top_k relevant document snippets.
+        Return the top_k most relevant documents for the given query.
 
-        Return a list of (filename, text) sorted by score descending.
+        Design: use the index to pre-filter to candidate docs (only those containing
+        at least one query word), then score and rank. Pre-filtering avoids scoring
+        every document and ensures zero-match docs never appear in results.
         """
-        results = []
-        # TODO: implement retrieval logic
-        return results[:top_k]
+        if not query or not query.strip():
+            logger.warning("Empty query passed to retrieve — returning no results")
+            return []
+
+        # Expand query to technical terms if LLM client is available
+        retrieval_query = query
+        if self.llm_client is not None:
+            retrieval_query = self.llm_client.expand_query(query)
+
+        query_words = set(re.sub(r"[^\w\s]", " ", retrieval_query.lower()).split())
+
+        # Pre-filter: collect filenames that contain at least one query word
+        candidate_filenames = set()
+        for word in query_words:
+            for filename in self.index.get(word, []):
+                candidate_filenames.add(filename)
+
+        if not candidate_filenames:
+            logger.warning("No candidate documents found for query: %s", query)
+            return []
+
+        # Score only the candidate documents
+        doc_lookup = {filename: text for filename, text in self.documents}
+        scored = []
+        for filename in candidate_filenames:
+            text = doc_lookup.get(filename, "")
+            score = self.score_document(query, text)
+            scored.append((score, filename, text))
+
+        scored.sort(key=lambda x: x[0], reverse=True)
+        results = [(filename, text) for _, filename, text in scored[:top_k]]
+        logger.info("Retrieved %d docs for query: %s — top: %s", len(results), query, [f for f, _ in results])
+        return results
 
     # -----------------------------------------------------------
     # Answering Modes

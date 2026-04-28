@@ -10,14 +10,21 @@ Optional helper module containing:
 # -----------------------------------------------------------
 
 SAMPLE_QUERIES = [
-    "Where is the auth token generated?",
-    "What environment variables are required for authentication?",
-    "How do I connect to the database?",
-    "Which endpoint lists all users?",
-    "What does the /api/projects/<project_id> route return?",
-    "Is there any mention of payment processing in these docs?",
-    "How does a client refresh an access token?",
-    "Which fields are stored in the users table?",
+    "How do I set up JWT authentication for my app?",
+    "What environment variables should I never commit to GitHub?",
+    "How should I structure my project folders?",
+    "What database should I use for a new web project?",
+    "How do I design REST API endpoints?",
+    "What is the difference between unit tests and integration tests?",
+    "How do I handle errors and exceptions in my code?",
+    "What git branching strategy should I follow?",
+    "How do I make my app scalable?",
+    "What security vulnerabilities should I watch out for?",
+    "How do I deploy my application to production?",
+    "What design patterns are useful for backend development?",
+    "How do I integrate an AI model into my project?",
+    "What should a good README include?",
+    "How do I plan and scope an MVP?",
 ]
 
 # -----------------------------------------------------------

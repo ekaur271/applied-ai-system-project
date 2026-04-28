@@ -13,7 +13,10 @@ Experiment with:
 """
 
 import os
+import logging
 from google import genai
+
+logger = logging.getLogger(__name__)
 
 # Central place to update the model name if needed.
 # You can swap this for a different Gemini model in the future.
@@ -40,6 +43,38 @@ class GeminiClient:
             )
 
         self.client = genai.Client(api_key=api_key)
+
+    # -----------------------------------------------------------
+    # Query expansion: rewrite beginner query using technical terms
+    # -----------------------------------------------------------
+
+    def expand_query(self, query):
+        """
+        Rewrites a plain-language query into technical SWE terminology
+        so keyword retrieval can find the right docs even when the user
+        doesn't know the exact terms.
+
+        Returns the expanded query string, or the original if the LLM fails.
+        """
+        prompt = f"""You are a software engineering expert.
+A beginner developer wrote this question:
+"{query}"
+
+Rewrite it as a short list of precise technical keywords and phrases a senior developer would use.
+Return only the keywords, nothing else. No explanation, no punctuation, no bullet points.
+Example output: JWT authentication token hashing bcrypt middleware route protection
+"""
+        try:
+            response = self.client.models.generate_content(
+                model=GEMINI_MODEL_NAME,
+                contents=prompt
+            )
+            expanded = (response.text or "").strip()
+            logger.info("Query expanded: '%s' → '%s'", query, expanded)
+            return expanded if expanded else query
+        except Exception as e:
+            logger.warning("Query expansion failed, using original query. (%s: %s)", type(e).__name__, e)
+            return query
 
     # -----------------------------------------------------------
     # Phase 0: naive generation over full docs
