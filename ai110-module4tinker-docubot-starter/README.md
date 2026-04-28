@@ -98,37 +98,94 @@ python evaluation.py
 
 > **Note:** Fill in these examples after running the system. Include the exact input you typed and paste the actual output. Aim for 2-3 varied examples.
 
-**Example 1**
+**Example 1 — Study Notes App**
 
+Input:
 ```
-Input:  "I want to build a web app where users can log in and manage their projects"
-Clarifying questions: [paste questions the agent asked]
-User answers: [paste your answers]
-
-Plan output:
-[paste the full plan here]
-```
-
-**Example 2**
-
-```
-Input:  "I want to build a REST API for a to-do list app"
-Clarifying questions: [paste questions]
-User answers: [paste your answers]
-
-Plan output:
-[paste the full plan here]
+I want to build a study notes app for college students who struggle to organize materials
+across subjects. Users create an account, add a subject, paste in notes, and search through
+them. The MVP is just account creation, one subject, paste notes, and basic search. Stack is
+Python and Flask, PostgreSQL, basic HTML frontend. Done means a user can sign up, add notes,
+and successfully find them by searching.
 ```
 
-**Example 3**
-
+Output:
 ```
-Input:  "I want to build a simple CLI tool that tracks my daily expenses"
-Clarifying questions: [paste questions]
-User answers: [paste your answers]
+## Phase 1: Project Setup and Database Foundation
+1. Initialize Flask Project Structure — This provides a clean starting point and manages dependencies.
+2. Configure Database Connection — Ensures the application can communicate with PostgreSQL.
+3. Implement Flask Application Factory — Allows flexible configuration and makes the app testable.
+4. Define User Database Model — Establishes the structure for storing user data.
+5. Run Database Migrations — Applies the defined schema to the database.
 
-Plan output:
-[paste the full plan here]
+## Phase 2: User Authentication
+1. Implement Password Hashing with bcrypt — Protects user passwords if the database is breached.
+2. Create User Registration Service — Centralizes business logic for user management.
+3. Build Registration API Endpoint (POST /register) — Allows new users to create an account.
+4. Implement JWT Token Generation — Provides secure identity confirmation without repeated DB checks.
+5. Create Login Endpoint and Auth Middleware — Enables sign-in and protects future routes.
+
+## Phase 3: Notes Management Backend
+1. Define Subject and Note Database Models — Structures how study materials are stored.
+2. Implement Note Repositories — Separates database logic from business logic.
+3. Create Note Service Functions — Encapsulates logic for adding and searching notes.
+4. Build Notes API Endpoints (POST /notes, GET /notes/search) — Core MVP features.
+
+## Phase 4: Basic Frontend Interface
+1. Develop Signup and Login Forms — Provides the initial user interface for authentication.
+2. Implement Form Submission with fetch API — Connects browser input to backend logic.
+3. Create Notes Management Interface — UI for pasting and searching notes.
+4. Display Search Results Dynamically — Completes the core user flow.
+
+## Phase 5: Testing, Validation, and Deployment
+1. Implement Input Validation — Prevents invalid data from corrupting the database.
+2. Add Backend Error Handling — Makes the API resilient with clear error feedback.
+3. Write Basic Unit Tests — Verifies individual components work as expected.
+4. Prepare for Deployment — Ensures environment variables are configured for production.
+```
+
+---
+
+**Example 2 — Team Task Management API**
+
+Input:
+```
+I want to build a REST API for a task management tool used by small engineering teams. Users
+can create projects, add tasks with deadlines and priority levels, and assign tasks to team
+members. The MVP is just creating a project, adding tasks to it, and marking them as done.
+Stack is Python and Flask, PostgreSQL. Done means a team member can create a project, add a
+task, assign it, and mark it complete through the API.
+```
+
+Output:
+```
+## Phase 1: Project Definition and Initial Design
+1. Define the Problem — Ensures clear understanding of scope before writing any code.
+2. Write User Stories for MVP — Frames features from the user's perspective.
+3. Break Down MVP Features into Tasks — Makes development manageable and estimable.
+4. Prioritize Tasks by Dependency — Ensures foundational work is stable before building on it.
+
+## Phase 2: API Foundation and Data Modeling
+1. Set Up Flask Project and Environment — Organizes code and manages dependencies.
+2. Configure Logging — Enables monitoring and debugging from day one.
+3. Define Database Schema (projects, tasks, team_members) — Foundation for all data interactions.
+4. Implement Database Interaction Layer — Enables the app to store and retrieve data.
+
+## Phase 3: Core API Endpoint Development
+1. Create Project Endpoint (POST /projects) — Fulfills the first core MVP requirement.
+2. Add Task Endpoint (POST /projects/<id>/tasks) — Enables task creation with deadlines and priority.
+3. Mark Task Complete Endpoint (PATCH /tasks/<id>) — Completes the core MVP user flow.
+4. Implement Business Logic and Input Validation — Defines how the app works and prevents bad data.
+
+## Phase 4: Error Handling and Testing
+1. Implement API Error Handling — Prevents crashes and provides consistent feedback.
+2. Write API Tests for MVP Endpoints — Ensures reliability and prevents regressions.
+3. Add Input Guardrails — Protects against edge cases like empty or oversized input.
+
+## Phase 5: Documentation
+1. Create a Comprehensive README — Primary guide for anyone using or setting up the project.
+2. Document Environment Variables in .env.example — Enables easy environment setup.
+3. Document API Endpoints — Enables correct interaction with the API.
 ```
 
 ---
@@ -157,17 +214,20 @@ The project starter was built around the Google Gemini API, and it provides a fr
 > **Note:** Fill this in after running `evaluation.py` and testing the full pipeline.
 
 **Retrieval evaluation**
-- Hit rate: [e.g. 0.75 — fill in your actual result]
-- Queries where retrieval failed: [list them]
-- What improved hit rate: [e.g. stripping punctuation from tokens, lowercasing]
+- Hit rate: **0.73** (11/15 queries retrieved the correct document)
+- Queries where retrieval failed: JWT authentication, database selection, scalability, AI model integration
+- Root cause: vocabulary mismatch — beginner phrasing ("make people log in", "store data") doesn't match technical keyword terms in docs
+- What improved hit rate: IDF weighting (rare domain-specific words score higher than common words like "how", "do", "I") brought hit rate from 0.00 on old docs to 0.73 on new knowledge base
+- Query expansion via LLM further improves retrieval at runtime by rewriting beginner queries into technical terminology before searching
 
 **Plan quality observations**
-- What worked well: [e.g. auth and database phases were well-grounded]
-- What didn't work: [e.g. deployment phase had weak doc coverage]
-- Edge cases: [e.g. very vague goals produced shallow plans]
+- What worked well: authentication, database design, API endpoint, and deployment phases were well-grounded in retrieved docs with specific, actionable steps
+- "Research needed" flags appeared correctly when docs didn't cover a topic (e.g. Flask-Migrate specifics) — the system refused to hallucinate
+- What didn't work: retrieval sometimes pulled `requirements-and-planning.md` and `design-patterns.md` for unrelated queries because those docs contain many general SWE terms
+- Edge cases: very short or vague project descriptions produce more generic plans with fewer doc-grounded steps
 
 **What I learned**
-[Fill in after testing — what surprised you, what you'd do differently]
+IDF weighting made a significant difference in retrieval quality — treating all words equally caused common filler words to dominate scores. The vocabulary mismatch problem is real: the 4 remaining misses all stem from beginners not knowing the technical term for what they want. LLM query expansion is the right architectural response to this, and it works well in practice.
 
 ---
 
