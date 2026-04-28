@@ -1,12 +1,3 @@
-"""
-CLI runner for the DocuBot tinker activity.
-
-Supports three modes:
-1. Naive LLM generation over all docs (Phase 0)
-2. Retrieval only (Phase 1)
-3. RAG: retrieval plus LLM generation (Phase 2)
-"""
-
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -27,133 +18,76 @@ from planner import run_planner
 
 
 def try_create_llm_client():
-    """
-    Tries to create a GeminiClient.
-    Returns (llm_client, has_llm: bool).
-    """
     try:
         client = GeminiClient()
         return client, True
-    except RuntimeError as exc:
-        print("Warning: LLM features are disabled.")
-        print(f"Reason: {exc}")
-        print("You can still run retrieval only mode.\n")
+    except RuntimeError as e:
+        print(f"Warning: LLM features disabled. {e}\n")
         return None, False
 
 
 def choose_mode(has_llm):
-    """
-    Asks the user which mode to run.
-    Returns "1", "2", "3", or "q".
-    """
-    print("Choose a mode:")
-    if has_llm:
-        print("  1) Naive LLM over full docs (no retrieval)")
-    else:
-        print("  1) Naive LLM over full docs (unavailable, no GEMINI_API_KEY)")
+    print("\nChoose a mode:")
+    print(f"  1) Naive LLM {'(no retrieval)' if has_llm else '(unavailable — no API key)'}")
     print("  2) Retrieval only (no LLM)")
-    if has_llm:
-        print("  3) RAG (retrieval + LLM)")
-    else:
-        print("  3) RAG (unavailable, no GEMINI_API_KEY)")
-    if has_llm:
-        print("  4) Project Planner (plan a new coding project)")
-    else:
-        print("  4) Project Planner (unavailable, no GEMINI_API_KEY)")
+    print(f"  3) RAG {'(retrieval + LLM)' if has_llm else '(unavailable — no API key)'}")
+    print(f"  4) Project Planner {'(plan a new coding project)' if has_llm else '(unavailable — no API key)'}")
     print("  q) Quit")
-
-    choice = input("Enter choice: ").strip().lower()
-    return choice
+    return input("\nEnter choice: ").strip().lower()
 
 
 def get_query_or_use_samples():
-    """
-    Ask the user if they want to run all sample queries or a single custom query.
-
-    Returns:
-        queries: list of strings
-        label: short description of the source of queries
-    """
-    print("\nPress Enter to run built in sample queries.")
-    custom = input("Or type a single custom query: ").strip()
-
-    if custom:
-        return [custom], "custom query"
-    else:
-        return SAMPLE_QUERIES, "sample queries"
+    print("\nPress Enter to run sample queries, or type a custom query.")
+    custom = input("Query: ").strip()
+    return ([custom], "custom query") if custom else (SAMPLE_QUERIES, "sample queries")
 
 
 def run_naive_llm_mode(bot, has_llm):
-    """
-    Mode 1:
-    Naive LLM generation over the full docs corpus.
-    """
-    if not has_llm or bot.llm_client is None:
-        print("\nNaive LLM mode is not available (no GEMINI_API_KEY).\n")
+    if not has_llm:
+        print("\nNaive LLM mode requires a GEMINI_API_KEY.\n")
         return
-
     queries, label = get_query_or_use_samples()
     print(f"\nRunning naive LLM mode on {label}...\n")
-
     all_text = bot.full_corpus_text()
-
     for query in queries:
         print("=" * 60)
         print(f"Question: {query}\n")
-        answer = bot.llm_client.naive_answer_over_full_docs(query, all_text)
-        print("Answer:")
-        print(answer)
+        print(bot.llm_client.naive_answer_over_full_docs(query, all_text))
         print()
 
 
 def run_retrieval_only_mode(bot):
-    """
-    Mode 2:
-    Retrieval only answers. No LLM involved.
-    """
     queries, label = get_query_or_use_samples()
     print(f"\nRunning retrieval only mode on {label}...\n")
-
     for query in queries:
         print("=" * 60)
         print(f"Question: {query}\n")
-        answer = bot.answer_retrieval_only(query)
-        print("Retrieved snippets:")
-        print(answer)
+        print(bot.answer_retrieval_only(query))
         print()
 
 
 def run_rag_mode(bot, has_llm):
-    """
-    Mode 3:
-    Retrieval plus LLM generation.
-    """
-    if not has_llm or bot.llm_client is None:
-        print("\nRAG mode is not available (no GEMINI_API_KEY).\n")
+    if not has_llm:
+        print("\nRAG mode requires a GEMINI_API_KEY.\n")
         return
-
     queries, label = get_query_or_use_samples()
     print(f"\nRunning RAG mode on {label}...\n")
-
     for query in queries:
         print("=" * 60)
         print(f"Question: {query}\n")
-        answer = bot.answer_rag(query)
-        print("Answer:")
-        print(answer)
+        print(bot.answer_rag(query))
         print()
 
 
 def main():
-    print("DocuBot Tinker Activity")
-    print("=======================\n")
+    print("DocuBot — SWE Project Planner")
+    print("=" * 60)
 
     llm_client, has_llm = try_create_llm_client()
     bot = DocuBot(llm_client=llm_client)
 
     while True:
         choice = choose_mode(has_llm)
-
         if choice == "q":
             print("\nGoodbye.")
             break
@@ -166,7 +100,7 @@ def main():
         elif choice == "4":
             run_planner(bot, llm_client)
         else:
-            print("\nUnknown choice. Please pick 1, 2, 3, 4, or q.\n")
+            print("\nInvalid choice. Enter 1, 2, 3, 4, or q.\n")
 
 
 if __name__ == "__main__":
