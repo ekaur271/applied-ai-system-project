@@ -37,7 +37,7 @@ User Goal
                                 └─→ Evaluator → Hit Rate + Grounding Score
 ```
 
-See [assets/system-diagram.png](../assets/system-diagram.png) for the full visual diagram.
+![System Diagram](../assets/system-diagram.png)
 
 ---
 
