@@ -30,11 +30,19 @@ def generate_plan(description, bot, llm_client):
     logger.info("Starting plan generation")
     print("\nGenerating your plan...\n")
 
-    print("  [1/2] Retrieving relevant documentation...")
-    snippets = bot.retrieve(description, top_k=5)
-    logger.info("Retrieved docs: %s", [f for f, _ in snippets])
+    print("  [1/3] Expanding query to technical terms...")
+    expanded = llm_client.expand_query(description)
+    print(f"         → {expanded}\n")
 
-    print("  [2/2] Building your plan...\n")
+    print("  [2/3] Retrieving relevant documentation...")
+    snippets = bot.retrieve(description, top_k=5)
+    if snippets:
+        print("         → Retrieved:")
+        for fname, _ in snippets:
+            print(f"           • {fname}")
+    print()
+
+    print("  [3/3] Building your plan...\n")
     plan = llm_client.generate_full_plan(description, snippets)
 
     logger.info("Plan generation complete")
