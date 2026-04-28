@@ -1,103 +1,103 @@
-# Database Guide
-
-This document describes the database layer used in the sample application. It covers connection details, table structures, and common query patterns that appear throughout the codebase.
+# Database Design
 
 ## Overview
+The database is the foundation of most applications. A well-designed schema is easier to query, scale, and maintain. Design your schema before writing any application code.
 
-The application uses a lightweight SQLite database for local development. In production environments, it can be configured to use PostgreSQL by providing the correct connection string.
+## Choosing a Database
+**SQL (PostgreSQL, SQLite, MySQL)**
+- Best for structured data with clear relationships
+- Use when data integrity and relationships matter
+- PostgreSQL for production, SQLite for development and small projects
 
-All database interactions are handled through the `db.py` module, which provides helper functions for connecting, executing queries, and mapping results into Python objects.
+**NoSQL (MongoDB, Firebase)**
+- Best for flexible or rapidly changing data shapes
+- Use when documents vary significantly between records
+- Harder to enforce data integrity
 
-## Connection Configuration
+**Default recommendation:** Start with PostgreSQL. It handles most use cases well and is the industry standard for web applications.
 
-The database connection is determined by the `DATABASE_URL` environment variable.
+## Schema Design Principles
+- Every table needs a primary key (use auto-incrementing `id` or UUID)
+- Use foreign keys to enforce relationships between tables
+- Store timestamps on every table: `created_at`, `updated_at`
+- Normalize data to avoid duplication — store each fact in one place
+- Use appropriate data types (don't store numbers as strings)
 
-Examples:
+## Common Tables
 
-- SQLite (default):
+**Users table:**
+```sql
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(50) DEFAULT 'user',
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+```
 
-    ```plaintext
-    sqlite:///app.db
-    ```
+**Relationships example:**
+```sql
+CREATE TABLE projects (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    status VARCHAR(50) DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT NOW()
+);
+```
 
-- PostgreSQL:
+## Migrations
+Never manually edit a production database schema. Use migrations to track and apply schema changes.
 
-    ```plaintext
-    postgres://user:password@localhost:5432/appdb
-    ```
+```bash
+# Example with Flask-Migrate or Alembic
+alembic revision --autogenerate -m "add projects table"
+alembic upgrade head
+```
 
-If `DATABASE_URL` is not provided, the application creates a local SQLite database file named `app.db`.
+Always commit migration files to version control. Never delete old migration files.
 
-## Tables
+## Using an ORM
+An ORM (Object-Relational Mapper) lets you interact with the database using Python objects instead of raw SQL.
 
-### users
+```python
+# SQLAlchemy example
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True)
+    email = Column(String, unique=True, nullable=False)
+    password_hash = Column(String, nullable=False)
+    projects = relationship("Project", back_populates="owner")
+```
 
-Stores basic account information.
+## Connection Setup
+Store database connection strings in environment variables. Never hardcode credentials.
 
-| Column       | Type      | Description                         |
-|--------------|-----------|-------------------------------------|
-| user_id      | INTEGER   | Primary key                         |
-| email        | TEXT      | Unique email address                |
-| password_hash| TEXT      | Hashed password                     |
-| joined_at    | TEXT      | ISO 8601 timestamp                  |
+```
+DATABASE_URL=postgresql://user:password@localhost:5432/mydb
+```
 
-### projects
+```python
+import os
+from sqlalchemy import create_engine
 
-Represents projects owned or shared with users.
+engine = create_engine(os.getenv("DATABASE_URL"))
+```
 
-| Column       | Type      | Description                         |
-|--------------|-----------|-------------------------------------|
-| project_id   | TEXT      | Primary key (string identifier)     |
-| name         | TEXT      | Human readable name                 |
-| description  | TEXT      | Optional longer description         |
-| status       | TEXT      | active, archived, or pending        |
-| owner_id     | INTEGER   | Foreign key referencing users       |
+## Indexing
+Add indexes on columns you frequently filter or sort by:
+```sql
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_projects_owner_id ON projects(owner_id);
+```
 
-### permissions
-
-Maps users to projects and defines what actions they can take.
-
-| Column     | Type    | Description                             |
-|------------|---------|-----------------------------------------|
-| user_id    | INTEGER | Foreign key                             |
-| project_id | TEXT    | Foreign key                             |
-| role       | TEXT    | admin, editor, or viewer                |
-
-A user listed as admin automatically has full access to the project.
-
-## Query Helpers
-
-The `db.py` module exposes several helpful functions:
-
-- `get_user_by_id(user_id)`  
-Returns a dictionary with user details or None if not found.
-
-- `get_all_users()`  
-Returns a list of all user records.
-
-- `get_projects_for_user(user_id)`  
-Returns all projects where the user has at least viewer access.
-
-- `get_project_details(project_id)`  
-Returns a single project record, including its metadata.
-
-These functions are thin wrappers over SQL queries and intentionally simple to make debugging easier.
-
-## Common Failure Cases
-
-- Missing or invalid `DATABASE_URL`  
-- Incorrect table schema after manual edits  
-- Queries returning empty results due to missing foreign key references  
-- SQLite locking errors when multiple writes happen quickly  
-
-If schema inconsistencies appear, run database migrations again or recreate the local SQLite file.
-
-## Notes for Development
-
-Developers often encounter confusion between SQLite and PostgreSQL behavior. In particular:
-
-- SQLite allows many implicit type conversions  
-- SQLite ignores certain constraint violations that PostgreSQL enforces  
-- Timestamps may appear in different formats across engines  
-
-Always test schema related changes using both database backends when possible.
+## Common Database Mistakes
+- No primary keys or using non-unique values as keys
+- Storing comma-separated values in a single column instead of a join table
+- Not using foreign keys (orphaned records accumulate)
+- Hardcoding database credentials in source code
+- Running raw user input in SQL queries (SQL injection risk)
+- Forgetting to add indexes on foreign key columns

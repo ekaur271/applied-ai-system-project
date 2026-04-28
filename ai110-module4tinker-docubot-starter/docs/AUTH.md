@@ -1,68 +1,87 @@
-# Authentication Guide
-
-This document explains how authentication works in the sample application. It covers token generation, required environment variables, and the expected client workflow.
+# Authentication and Authorization
 
 ## Overview
+Authentication verifies who a user is. Authorization determines what they are allowed to do. Both are required for any application that has user accounts or protected resources.
 
-The application uses a simple token based system. Every request to a protected endpoint must include a valid access token in the Authorization header. Tokens are short lived and tied to a single user.
+## Core Concepts
+- **Authentication** — login, verify identity, issue a token or session
+- **Authorization** — check permissions before allowing access to a resource
+- **JWT (JSON Web Token)** — a signed token that proves identity without hitting the database on every request
+- **Session** — server-side storage of login state, identified by a session ID in a cookie
+- **Hashing** — one-way transformation of a password so it cannot be reversed if stolen
 
-## Token Generation
+## Password Hashing
+Never store plain text passwords. Always hash passwords before saving to the database.
 
-Tokens are created by the `generate_access_token` function in the `auth_utils.py` module. The function takes a user ID and returns a signed JSON Web Token string.
+```python
+import bcrypt
 
-Internally, the token is signed using the secret stored in the `AUTH_SECRET_KEY` environment variable. If the key is missing or empty, token creation will fail.
+# Hashing a password on registration
+hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
 
-The token payload includes:
+# Verifying a password on login
+is_valid = bcrypt.checkpw(password.encode(), hashed)
+```
 
-- `user_id`
-- `issued_at`
-- `expires_at`
-- `permissions` (optional)
+Use `bcrypt`, `argon2`, or `scrypt`. Never use MD5 or SHA-1 for passwords.
 
-## Validating Requests
+## JWT Authentication Flow
+1. User submits username and password to `POST /auth/login`
+2. Server verifies credentials against hashed password in database
+3. Server generates a signed JWT containing user ID and expiry
+4. Client stores the JWT (in memory or httpOnly cookie)
+5. Client includes JWT in `Authorization: Bearer <token>` header on future requests
+6. Server validates token signature and expiry on each protected request
 
-Requests are validated by the `require_auth` decorator. This decorator ensures that:
+```python
+import jwt
+import os
 
-1. A token is present in the Authorization header  
-2. The token signature is valid  
-3. The token has not expired  
-4. The user has permission to access the requested resource  
+SECRET_KEY = os.getenv("AUTH_SECRET_KEY")
 
-If validation fails, the client receives a 401 Unauthorized response.
+def generate_token(user_id):
+    payload = {"user_id": user_id, "exp": datetime.utcnow() + timedelta(hours=24)}
+    return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 
-## Environment Variables
+def verify_token(token):
+    return jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+```
 
-The authentication system depends on two variables:
+## Protecting Routes with Middleware
+Use middleware to protect routes instead of repeating auth checks in every handler.
 
-- `AUTH_SECRET_KEY`  
-  A secret string used to sign all access tokens. Must be long and unpredictable.
+```python
+def require_auth(f):
+    def wrapper(*args, **kwargs):
+        token = request.headers.get("Authorization", "").replace("Bearer ", "")
+        try:
+            user = verify_token(token)
+            request.user = user
+        except jwt.ExpiredSignatureError:
+            return {"error": "Token expired"}, 401
+        except jwt.InvalidTokenError:
+            return {"error": "Invalid token"}, 401
+        return f(*args, **kwargs)
+    return wrapper
+```
 
-- `TOKEN_LIFETIME_SECONDS`  
-  Controls how long a generated token remains valid. Defaults to 3600 seconds if not set.
+## Environment Variables for Auth
+Never hardcode secret keys. Store them in environment variables:
+```
+AUTH_SECRET_KEY=your-long-random-secret-here
+TOKEN_LIFETIME_SECONDS=86400
+```
 
-Both variables must be configured before starting the server.
+## Common Auth Mistakes
+- Storing passwords in plain text
+- Hardcoding secret keys in source code
+- Using short or predictable secret keys
+- Not setting token expiry
+- Storing JWTs in localStorage (vulnerable to XSS — prefer httpOnly cookies)
+- Skipping authorization checks (checking login but not permissions)
 
-## Client Workflow
-
-A typical client follows this sequence:
-
-1. Send credentials to `/api/login`
-2. Receive an access token in the response
-3. Include the token in the Authorization header for all subsequent requests:
-
-    ```plaintext
-    Authorization: Bearer <token>
-    ```
-
-4. Refresh the token when it expires by calling `/api/refresh`
-
-Clients should never store tokens in URL query parameters.
-
-## Common Failure Cases
-
-- Token signed with a stale or rotated key  
-- Clock skew causing premature expiration  
-- Missing Authorization header  
-- Incorrect token format (extra whitespace or missing Bearer prefix)
-
-If unexpected authentication failures occur, rotate the secret key and instruct users to log in again.
+## Role-Based Access Control (RBAC)
+For apps with different user types (admin, user, guest):
+- Store a `role` field on the user record
+- Include role in the JWT payload
+- Check role in middleware before allowing access to sensitive routes
