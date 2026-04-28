@@ -80,7 +80,7 @@ def run_rag_mode(bot, has_llm):
 
 
 def main():
-    print("DocuBot — SWE Project Planner")
+    print("SWE Mentor")
     print("=" * 60)
 
     llm_client, has_llm = try_create_llm_client()

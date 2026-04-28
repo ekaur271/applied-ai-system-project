@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 
 def ask_for_project_description():
     print("\n" + "=" * 60)
-    print("DocuBot — Project Planner")
+    print("SWE Mentor — Project Planner")
     print("=" * 60)
     print("\nDescribe your project in a paragraph. Try to cover:")
     print("  • What problem it solves and who it's for")

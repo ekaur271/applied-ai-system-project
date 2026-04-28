@@ -1,4 +1,4 @@
-# DocuBot Project Planner
+# SWE Mentor
 
 An agentic AI system that helps developers plan coding projects from scratch using Retrieval-Augmented Generation (RAG). The user describes a project idea, answers a few clarifying questions, and receives a structured, phase-by-phase implementation plan grounded in real software engineering best practices.
 
@@ -12,7 +12,7 @@ This system is built on top of **DocuBot** (Module 4 Tinker Activity), a documen
 
 ## Title and Summary
 
-**DocuBot Project Planner** turns a simple project idea into a concrete, actionable development plan — without hallucinating steps that don't exist. Instead of generating advice from scratch, the planner retrieves relevant best-practice documentation for each phase of the project and uses that retrieved context to ground every step in the plan. This matters because AI-generated plans are often generic or wrong. By anchoring each step to real documentation, the system produces plans that are specific, consistent, and trustworthy.
+**SWE Mentor** turns a simple project idea into a concrete, actionable development plan — without hallucinating steps that don't exist. Instead of generating advice from scratch, the planner retrieves relevant best-practice documentation for each phase of the project and uses that retrieved context to ground every step in the plan. This matters because AI-generated plans are often generic or wrong. By anchoring each step to real documentation, the system produces plans that are specific, consistent, and trustworthy.
 
 ---
 
@@ -91,6 +91,48 @@ python evaluation.py
 ```
 
 **Requirements:** Python 3.9+, a Gemini API key for LLM modes. No database or server setup required.
+
+---
+
+## Demo Walkthrough
+
+### Example 1 — Study Notes App
+
+**Step 1:** Launch and select Project Planner mode, enter project description
+
+![Study Notes - Input](../assets/one.png)
+
+**Step 2:** Agent expands query, retrieves relevant docs, builds the plan
+
+![Study Notes - Generation steps and plan](../assets/two.png)
+
+**Step 3:** Full structured plan output
+
+![Study Notes - Plan continued](../assets/three.png)
+
+---
+
+### Example 2 — Recipe Sharing App
+
+**Step 1:** Enter project description
+
+![Recipe App - Input](../assets/four.png)
+
+**Step 2:** Agent expands query, retrieves docs
+
+![Recipe App - Generation steps](../assets/five.png)
+
+**Step 3:** Full structured plan output
+
+![Recipe App - Plan output](../assets/six.png)
+
+---
+
+### Evaluation Output
+
+Retrieval hit rate across 15 sample queries:
+
+![Evaluation results](../assets/screenshot-evaluation.png)
 
 ---
 
@@ -204,7 +246,7 @@ A simple inverted index with word-count scoring is transparent, fast, and easy t
 **Why CLI instead of a web interface?**
 The planner's value is in the quality of its reasoning, not its UI. A CLI keeps the project focused on the AI pipeline and avoids frontend complexity that would consume time without adding to the core system.
 
-**Why Gemini (gemma-3-27b-it)?**
+**Why Gemini (gemini-2.5-flash)?**
 The project starter was built around the Google Gemini API, and it provides a free tier sufficient for development and testing. The model handles instruction-following well, which is important for strict RAG prompts that require refusals when context is insufficient.
 
 ---
