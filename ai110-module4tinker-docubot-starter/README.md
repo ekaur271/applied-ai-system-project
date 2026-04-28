@@ -233,9 +233,14 @@ IDF weighting made a significant difference in retrieval quality — treating al
 
 ## Reflection
 
-> **Note:** Write this last, in your own words, after you've built and tested the system.
+Building this project made me realize how much the quality of your knowledge base determines the quality of your RAG system. Clean, focused documentation makes retrieval work well — messy or inconsistent data would have made the whole pipeline unreliable. That was something I hadn't fully appreciated before actually building it.
 
-[Reflect on: What did building this teach you about how RAG works in practice? What surprised you about the gap between retrieval and generation? How does grounding AI output in real sources change what you trust about the answer? What would you add if you had more time?]
+I also didn't expect word weighting to matter as much as it did. Early on I treated every word equally, and retrieval was clearly pulling the wrong documents. Switching to IDF weighting — where rare, domain-specific words count more than common filler words — made a measurable difference in hit rate. It's a simple idea but the impact was immediate.
+
+Grounding AI output in real sources is a significant shift in how trustworthy the output feels. On the open internet there's a lot of bad code and outdated advice, so having the model answer strictly from a curated knowledge base means the plan it produces actually reflects good practices. The tradeoff is that you need clean, well-structured data to start with — which is its own work.
+
+If I had more time, I'd want to take the project plan the system generates and actually scaffold the implementation — create the folder structure, starter files, and a basic README for the described project automatically. Essentially turning the plan into a working starting point rather than just a document.
+
 
 ---
 
@@ -244,7 +249,7 @@ IDF weighting made a significant difference in retrieval quality — treating al
 | Component | Technology |
 |---|---|
 | Language | Python 3.9+ |
-| LLM | Google Gemini (gemma-3-27b-it) |
+| LLM | Google Gemini (gemini-2.5-flash) |
 | Retrieval | Keyword inverted index (custom) |
 | Knowledge base | Hand-authored `.md` files |
 | Evaluation | Custom hit-rate harness |
