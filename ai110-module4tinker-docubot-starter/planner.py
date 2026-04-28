@@ -3,11 +3,10 @@ Project Planner — handles the planning conversation and plan generation.
 
 Flow:
 1. Ask the user 9 planning questions
-2. Assemble answers into a context block
-3. LLM decomposes the project into phases
-4. For each phase, retrieve relevant docs via RAG
-5. LLM generates grounded steps per phase
-6. Output the full structured plan
+2. Assemble answers into one coherent project paragraph
+3. Retrieve the most relevant docs using that paragraph as the query
+4. One LLM call: project paragraph + retrieved docs → full structured plan
+5. Output the plan
 """
 
 import logging
@@ -48,28 +47,22 @@ def ask_planning_questions():
     return answers
 
 
-def assemble_context(answers):
+def assemble_paragraph(answers):
     """
-    Formats the user's answers into a structured context block
-    that gets passed to the LLM for plan generation.
+    Turns the user's 9 answers into one coherent project description paragraph.
+    This is used as both the retrieval query and the LLM context.
     """
-    labels = {
-        "problem":   "Problem being solved",
-        "users":     "Target users and current alternatives",
-        "core_loop": "Core user flow",
-        "mvp":       "MVP definition",
-        "risks":     "Technical risks and unknowns",
-        "cuts":      "Features that can be cut",
-        "technical": "Technical requirements",
-        "stack":     "Tech stack",
-        "done":      "Definition of done",
-    }
-
-    lines = ["PROJECT CONTEXT", "-" * 40]
-    for key, label in labels.items():
-        lines.append(f"{label}: {answers.get(key, 'Not specified')}")
-
-    return "\n".join(lines)
+    return (
+        f"I want to build something that solves this problem: {answers.get('problem', 'not specified')}. "
+        f"The target users are {answers.get('users', 'not specified')}. "
+        f"Here is what a user does in the app: {answers.get('core_loop', 'not specified')}. "
+        f"The MVP is: {answers.get('mvp', 'not specified')}. "
+        f"The tech stack is: {answers.get('stack', 'not specified')}. "
+        f"Technical requirements include: {answers.get('technical', 'not specified')}. "
+        f"The riskiest part is: {answers.get('risks', 'not specified')}. "
+        f"I can cut: {answers.get('cuts', 'not specified')} if needed. "
+        f"Done means: {answers.get('done', 'not specified')}."
+    )
 
 
 def show_summary_and_confirm(answers):
@@ -90,50 +83,31 @@ def show_summary_and_confirm(answers):
     return choice in ("yes", "y")
 
 
-def generate_plan(context, bot, llm_client):
+def generate_plan(project_paragraph, bot, llm_client):
     """
-    Orchestrates the full plan generation pipeline:
-    1. Decompose project into phases
-    2. For each phase, retrieve relevant docs
-    3. Generate grounded steps per phase
-    4. Return the assembled plan as a string
+    Generates the full project plan in two steps:
+    1. One retrieval pass — finds the most relevant docs for the whole project
+    2. One LLM call — project paragraph + retrieved docs → full structured plan
     """
     logger.info("Starting plan generation")
     print("\nGenerating your plan...\n")
 
-    # Step 1: decompose into phases
-    print("  [1/3] Breaking your project into phases...")
-    phases = llm_client.decompose_into_phases(context)
-    logger.info("Decomposed into %d phases: %s", len(phases), phases)
+    # Step 1: retrieve top 5 docs using the project paragraph as the query
+    print("  [1/2] Retrieving relevant documentation...")
+    snippets = bot.retrieve(project_paragraph, top_k=5)
+    logger.info("Retrieved %d docs: %s", len(snippets), [f for f, _ in snippets])
 
-    if not phases:
-        return "Could not decompose your project into phases. Please try again with more detail."
+    # Step 2: one LLM call generates the entire plan
+    print("  [2/2] Generating your plan...\n")
+    plan = llm_client.generate_full_plan(project_paragraph, snippets)
 
-    # Step 2 + 3: for each phase, retrieve docs and generate steps
-    print("  [2/3] Retrieving relevant documentation for each phase...")
-    plan_sections = []
-
-    for i, phase in enumerate(phases, 1):
-        logger.info("Processing phase %d: %s", i, phase)
-
-        # Retrieve docs relevant to this phase
-        snippets = bot.retrieve(f"{phase} {context}", top_k=3)
-
-        # Generate grounded steps using retrieved snippets
-        steps = llm_client.generate_phase_steps(phase, context, snippets)
-        plan_sections.append(f"## Phase {i}: {phase}\n\n{steps}")
-
-    print("  [3/3] Assembling your plan...\n")
-
-    plan = "\n\n".join(plan_sections)
     logger.info("Plan generation complete")
     return plan
 
 
 def run_planner(bot, llm_client):
     """
-    Main entry point for the planner mode.
-    Called from main.py.
+    Main entry point for the planner mode. Called from main.py.
     """
     if llm_client is None:
         print("\nThe planner requires a Gemini API key. Please set GEMINI_API_KEY in your .env file.\n")
@@ -142,16 +116,14 @@ def run_planner(bot, llm_client):
     # Stage 1: planning conversation
     answers = ask_planning_questions()
 
-    # Confirm before generating
     if not show_summary_and_confirm(answers):
         print("\nNo problem — come back when you're ready.\n")
         return
 
-    # Stage 2: plan generation
-    context = assemble_context(answers)
-    plan = generate_plan(context, bot, llm_client)
+    # Stage 2: assemble paragraph and generate plan
+    project_paragraph = assemble_paragraph(answers)
+    plan = generate_plan(project_paragraph, bot, llm_client)
 
-    # Output
     print("=" * 60)
     print("YOUR PROJECT PLAN")
     print("=" * 60)

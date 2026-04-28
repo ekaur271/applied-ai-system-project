@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 # Central place to update the model name if needed.
 # You can swap this for a different Gemini model in the future.
-GEMINI_MODEL_NAME = "gemma-3-27b-it"
+GEMINI_MODEL_NAME = "gemini-2.0-flash"
 
 
 class GeminiClient:
@@ -157,7 +157,59 @@ Rules:
             return f"API error — could not generate answer. ({type(e).__name__}: {e})"
 
     # -----------------------------------------------------------
-    # Planner: decompose project into phases
+    # Planner: generate full project plan in one call
+    # -----------------------------------------------------------
+
+    def generate_full_plan(self, project_paragraph, snippets):
+        """
+        Generates a complete structured project plan in a single LLM call.
+        Grounds each phase in the retrieved documentation snippets.
+        """
+        if snippets:
+            docs_block = "\n\n".join(f"[{fname}]\n{text}" for fname, text in snippets)
+        else:
+            docs_block = "No documentation retrieved."
+
+        prompt = f"""You are a senior software engineer mentoring a beginner developer who wants to build a real project.
+
+Here is their project description:
+{project_paragraph}
+
+Using ONLY the documentation below, generate a complete implementation plan broken into 4-6 phases.
+
+For each phase:
+- Give it a clear, specific name
+- List 3-5 concrete, numbered steps
+- For each step, explain what to do AND why it matters in one beginner-friendly sentence
+- If a step is not covered by the documentation, write: "Research needed: [topic]" as the step
+
+Documentation:
+{docs_block}
+
+Format your response exactly like this — no intro, no summary, just the phases:
+
+## Phase 1: [Phase Name]
+1. [What to do] — [Why it matters]
+2. [What to do] — [Why it matters]
+...
+
+## Phase 2: [Phase Name]
+...
+"""
+        try:
+            response = self.client.models.generate_content(
+                model=GEMINI_MODEL_NAME,
+                contents=prompt
+            )
+            result = (response.text or "").strip()
+            logger.info("Full plan generated successfully (%d chars)", len(result))
+            return result
+        except Exception as e:
+            logger.error("Full plan generation failed: %s", str(e), exc_info=True)
+            return f"Could not generate plan. ({type(e).__name__}: {e})"
+
+    # -----------------------------------------------------------
+    # Planner: decompose project into phases (kept for reference)
     # -----------------------------------------------------------
 
     def decompose_into_phases(self, context):
