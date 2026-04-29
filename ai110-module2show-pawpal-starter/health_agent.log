@@ -1,0 +1,59 @@
+2026-04-29 16:32:00,952 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 400 Bad Request"
+2026-04-29 16:32:00,955 ERROR Classification failed: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CaYhTDYafXTP9NhxiWdzT'}
+2026-04-29 16:32:01,121 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 400 Bad Request"
+2026-04-29 16:32:01,122 ERROR Analysis failed for Mochi: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CaYhTEeonEwhyzGTh4qfp'}
+2026-04-29 16:32:01,122 INFO HealthCheck | pet=Mochi species=dog category=unknown severity= vet_required=False
+2026-04-29 16:41:50,739 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 400 Bad Request"
+2026-04-29 16:41:50,740 ERROR Classification failed: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CaYiChVnrNhECYHhtYt9M'}
+2026-04-29 16:41:50,912 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 400 Bad Request"
+2026-04-29 16:41:50,913 ERROR Analysis failed for Mochi: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CaYiCiBxciGBgbWWQxRfb'}
+2026-04-29 16:41:50,914 INFO HealthCheck | pet=Mochi species=dog category=unknown severity= vet_required=False
+2026-04-29 16:41:54,062 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 400 Bad Request"
+2026-04-29 16:41:54,063 ERROR Classification failed: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CaYiCwbriHKmybYNXgQHn'}
+2026-04-29 16:41:54,173 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 400 Bad Request"
+2026-04-29 16:41:54,174 ERROR Analysis failed for Mochi: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CaYiCxJGtTruLEfswUyBK'}
+2026-04-29 16:41:54,175 INFO HealthCheck | pet=Mochi species=dog category=unknown severity= vet_required=False
+2026-04-29 16:43:07,988 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 16:43:09,560 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 16:43:09,561 ERROR Analysis failed for Mochi: Expecting value: line 1 column 1 (char 0)
+2026-04-29 16:43:09,562 INFO HealthCheck | pet=Mochi species=dog category=digestive severity= vet_required=False
+2026-04-29 16:43:47,717 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 16:43:49,719 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 16:43:49,722 INFO HealthCheck | pet=Mochi species=dog category=digestive severity=medium vet_required=False
+2026-04-29 16:44:53,174 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 16:44:54,524 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 16:44:54,526 INFO HealthCheck | pet=TestDog species=dog category=digestive severity=low vet_required=False
+2026-04-29 16:44:55,191 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 16:44:56,894 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 16:44:56,896 INFO HealthCheck | pet=TestCat species=cat category=digestive severity=high vet_required=True
+2026-04-29 16:44:57,713 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 16:44:59,482 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 16:44:59,484 INFO HealthCheck | pet=TestDog species=dog category=physical severity=medium vet_required=False
+2026-04-29 16:45:00,683 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 16:45:02,321 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 16:45:02,323 INFO HealthCheck | pet=TestDog species=dog category=digestive severity=high vet_required=True
+2026-04-29 16:45:03,153 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 16:45:04,882 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 16:45:04,883 INFO HealthCheck | pet=TestCat species=cat category=unknown severity=high vet_required=True
+2026-04-29 16:45:04,884 WARNING Rejected empty/short observation for TestDog
+2026-04-29 17:05:14,950 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 17:05:16,421 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 17:05:16,423 INFO HealthCheck | pet=TestDog species=dog category=digestive severity=low vet_required=False
+2026-04-29 17:05:17,098 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 17:05:18,430 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 17:05:18,432 INFO HealthCheck | pet=TestCat species=cat category=digestive severity=high vet_required=True
+2026-04-29 17:05:19,249 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 17:05:20,786 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 17:05:20,787 INFO HealthCheck | pet=TestDog species=dog category=physical severity=medium vet_required=False
+2026-04-29 17:05:21,746 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 17:05:23,323 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 17:05:23,325 INFO HealthCheck | pet=TestDog species=dog category=digestive severity=high vet_required=True
+2026-04-29 17:05:24,269 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 17:05:26,315 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 17:05:26,317 INFO HealthCheck | pet=TestCat species=cat category=unknown severity=high vet_required=True
+2026-04-29 17:05:26,317 WARNING Rejected empty/short observation for TestDog
+2026-04-29 17:05:26,317 WARNING Rejected off-topic observation for TestDog: 'asdfjkl qwerty zxcvbn'
+2026-04-29 17:05:26,317 WARNING Rejected off-topic observation for TestDog: 'my car won't start and makes a clicking noise'
+2026-04-29 17:05:26,927 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 17:05:29,488 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 17:05:29,489 INFO HealthCheck | pet=TestDog species=dog category=unknown severity=low vet_required=False

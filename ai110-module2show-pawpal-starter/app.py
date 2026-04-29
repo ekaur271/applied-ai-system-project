@@ -1,6 +1,7 @@
 import streamlit as st
 from datetime import date
 from pawpal_system import Owner, Pet, Task, AvailabilityBlock, Scheduler, TaskBatch
+from health_agent import run_health_check
 
 # ─── Page config (must be first Streamlit call) ──────────────────────────────
 st.set_page_config(
@@ -576,210 +577,300 @@ if not st.session_state.pets:
     """, unsafe_allow_html=True)
     st.stop()
 
-# ── Schedule controls ─────────────────────────────────────────────────
-ctrl1, ctrl2, ctrl3, ctrl4 = st.columns([3, 1, 1, 1.5])
-with ctrl1:
-    pets_to_schedule = st.multiselect(
-        "Pets", [p.name for p in st.session_state.pets],
-        default=[p.name for p in st.session_state.pets],
-        label_visibility="collapsed", placeholder="Select pets to schedule…",
-    )
-with ctrl2:
-    day_start = st.text_input("Start", value="08:00", label_visibility="collapsed", placeholder="08:00")
-with ctrl3:
-    day_end = st.text_input("End", value="22:00", label_visibility="collapsed", placeholder="22:00")
-with ctrl4:
-    generate = st.button("🗓  Generate Schedule", type="primary", use_container_width=True)
+# ── Main tabs ─────────────────────────────────────────────────────────
+tab_schedule, tab_health = st.tabs(["🗓 Schedule", "🩺 Health Check"])
 
-if generate:
-    if not pets_to_schedule:
-        st.warning("Select at least one pet to schedule.")
-    else:
-        generated = []
-        for pname in pets_to_schedule:
-            pet = next(p for p in st.session_state.pets if p.name == pname)
-            if not pet.get_all_tasks():
-                st.warning(f"**{pet.name}** has no tasks — skipping.")
-                continue
-            scheduler = Scheduler(
-                owner=st.session_state.owner, pet=pet, date=TODAY,
-                day_start=day_start, day_end=day_end,
-            )
-            load    = scheduler.check_day_load(pet.get_all_tasks())
-            batches = scheduler.batch_tasks(pet.get_all_tasks())
-            plan    = scheduler.build_schedule()
-            st.session_state.plans[pname] = {
-                "plan":      plan,
-                "scheduler": scheduler,
-                "explanation": scheduler.explain_plan(plan),
-                "load":      load,
-                "batches":   batches,
-                "deferred_decisions": {t.name: None for t in load["deferred_suggestions"]},
-            }
-            generated.append(pname)
-        if generated:
-            st.success(f"✅ Schedule ready for: {', '.join(generated)}")
-            st.rerun()
+# ══════════════════════════════════════════════════════════════════════
+# SCHEDULE TAB
+# ══════════════════════════════════════════════════════════════════════
+with tab_schedule:
+    # ── Schedule controls ─────────────────────────────────────────────
+    ctrl1, ctrl2, ctrl3, ctrl4 = st.columns([3, 1, 1, 1.5])
+    with ctrl1:
+        pets_to_schedule = st.multiselect(
+            "Pets", [p.name for p in st.session_state.pets],
+            default=[p.name for p in st.session_state.pets],
+            label_visibility="collapsed", placeholder="Select pets to schedule…",
+        )
+    with ctrl2:
+        day_start = st.text_input("Start", value="08:00", label_visibility="collapsed", placeholder="08:00")
+    with ctrl3:
+        day_end = st.text_input("End", value="22:00", label_visibility="collapsed", placeholder="22:00")
+    with ctrl4:
+        generate = st.button("🗓  Generate Schedule", type="primary", use_container_width=True)
 
-# ── Empty state: no schedule yet ─────────────────────────────────────
-if not st.session_state.plans:
-    st.markdown("""
-    <div class="empty-state">
-      <span class="icon">📅</span>
-      <h3>No schedule generated yet</h3>
-      <p>Select your pets above and hit <strong>Generate Schedule</strong>.</p>
-    </div>
-    """, unsafe_allow_html=True)
-    st.stop()
-
-# ── Conflict detection ────────────────────────────────────────────────
-all_plans     = [v["plan"] for v in st.session_state.plans.values()]
-any_scheduler = next(iter(st.session_state.plans.values()))["scheduler"]
-conflicts     = any_scheduler.detect_conflicts(*all_plans)
-
-if conflicts:
-    st.error(f"⚠️ **{len(conflicts)} conflict{'s' if len(conflicts) != 1 else ''} detected** — review and resolve below.")
-    for ci, conflict in enumerate(conflicts):
-        with st.expander(f"Conflict {ci + 1}: {conflict['message']}", expanded=True):
-            if conflict["suggestion"]:
-                st.markdown(
-                    f"💡 **Suggested fix:** Move **{conflict['loser_task'].task.name}** "
-                    f"({conflict['loser_pet']}) → **{conflict['suggestion']}**"
+    if generate:
+        if not pets_to_schedule:
+            st.warning("Select at least one pet to schedule.")
+        else:
+            generated = []
+            for pname in pets_to_schedule:
+                pet = next(p for p in st.session_state.pets if p.name == pname)
+                if not pet.get_all_tasks():
+                    st.warning(f"**{pet.name}** has no tasks — skipping.")
+                    continue
+                scheduler = Scheduler(
+                    owner=st.session_state.owner, pet=pet, date=TODAY,
+                    day_start=day_start, day_end=day_end,
                 )
-                ca, cb = st.columns(2)
-                with ca:
-                    if st.button("✅ Apply Fix", key=f"fix_{ci}"):
-                        conflict["loser_task"].update_start(conflict["suggestion"])
-                        end_min = (
-                            sum(int(x) * m for x, m in zip(conflict["suggestion"].split(":"), [60, 1]))
-                            + conflict["loser_task"].task.duration
+                load    = scheduler.check_day_load(pet.get_all_tasks())
+                batches = scheduler.batch_tasks(pet.get_all_tasks())
+                plan    = scheduler.build_schedule()
+                st.session_state.plans[pname] = {
+                    "plan":      plan,
+                    "scheduler": scheduler,
+                    "explanation": scheduler.explain_plan(plan),
+                    "load":      load,
+                    "batches":   batches,
+                    "deferred_decisions": {t.name: None for t in load["deferred_suggestions"]},
+                }
+                generated.append(pname)
+            if generated:
+                st.success(f"✅ Schedule ready for: {', '.join(generated)}")
+                st.rerun()
+
+    # ── Empty state: no schedule yet ──────────────────────────────────
+    if not st.session_state.plans:
+        st.markdown("""
+        <div class="empty-state">
+          <span class="icon">📅</span>
+          <h3>No schedule generated yet</h3>
+          <p>Select your pets above and hit <strong>Generate Schedule</strong>.</p>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        # ── Conflict detection ─────────────────────────────────────────
+        all_plans     = [v["plan"] for v in st.session_state.plans.values()]
+        any_scheduler = next(iter(st.session_state.plans.values()))["scheduler"]
+        conflicts     = any_scheduler.detect_conflicts(*all_plans)
+
+        if conflicts:
+            st.error(f"⚠️ **{len(conflicts)} conflict{'s' if len(conflicts) != 1 else ''} detected** — review and resolve below.")
+            for ci, conflict in enumerate(conflicts):
+                with st.expander(f"Conflict {ci + 1}: {conflict['message']}", expanded=True):
+                    if conflict["suggestion"]:
+                        st.markdown(
+                            f"💡 **Suggested fix:** Move **{conflict['loser_task'].task.name}** "
+                            f"({conflict['loser_pet']}) → **{conflict['suggestion']}**"
                         )
-                        conflict["loser_task"].update_finish(f"{end_min // 60:02d}:{end_min % 60:02d}")
-                        st.success("Fix applied!"); st.rerun()
-                with cb:
-                    if st.button("🚫 Ignore", key=f"ignore_{ci}"):
-                        st.info("Conflict ignored.")
-            else:
-                st.warning("No open slot found to resolve this conflict automatically.")
-else:
-    st.success("✅ No scheduling conflicts detected.")
+                        ca, cb = st.columns(2)
+                        with ca:
+                            if st.button("✅ Apply Fix", key=f"fix_{ci}"):
+                                conflict["loser_task"].update_start(conflict["suggestion"])
+                                end_min = (
+                                    sum(int(x) * m for x, m in zip(conflict["suggestion"].split(":"), [60, 1]))
+                                    + conflict["loser_task"].task.duration
+                                )
+                                conflict["loser_task"].update_finish(f"{end_min // 60:02d}:{end_min % 60:02d}")
+                                st.success("Fix applied!"); st.rerun()
+                        with cb:
+                            if st.button("🚫 Ignore", key=f"ignore_{ci}"):
+                                st.info("Conflict ignored.")
+                    else:
+                        st.warning("No open slot found to resolve this conflict automatically.")
+        else:
+            st.success("✅ No scheduling conflicts detected.")
 
-# ── Sort selector ─────────────────────────────────────────────────────
-sort_col, _ = st.columns([2, 5])
-with sort_col:
-    schedule_sort = st.radio(
-        "View by", ["⏱ time", "🔴 priority", "🗂 batched", "📋 consolidated"],
-        horizontal=True, label_visibility="collapsed",
-    )
-sort_key = schedule_sort.split(" ")[1]   # strip emoji
-
-st.write("")
-
-# ── Consolidated view ─────────────────────────────────────────────────
-if sort_key == "consolidated":
-    # Overall stats across all pets
-    total_all    = sum(len(e["plan"].scheduled_tasks) for e in st.session_state.plans.values())
-    complete_all = sum(
-        sum(1 for s in e["plan"].scheduled_tasks if s.is_complete)
-        for e in st.session_state.plans.values()
-    )
-    remaining_all = total_all - complete_all
-    prog_all      = complete_all / total_all if total_all > 0 else 0.0
-
-    ca, cb = st.columns([4, 2])
-    with ca:
-        st.markdown("### 📋 All Pets — Combined Schedule")
-    with cb:
-        st.markdown(
-            f"<div style='text-align:right;padding-top:10px;font-size:0.8rem;color:#94a3b8'>"
-            f"{complete_all}/{total_all} complete"
-            f"{'&nbsp;·&nbsp;' + str(remaining_all) + ' left' if remaining_all else ' — all done 🎉'}"
-            f"</div>",
-            unsafe_allow_html=True,
-        )
-    st.progress(prog_all)
-    st.write("")
-    _render_consolidated(st.session_state.plans)
-    st.stop()
-
-# ── Per-pet schedule cards ────────────────────────────────────────────
-for pname, entry in st.session_state.plans.items():
-    plan    = entry["plan"]
-    load    = entry["load"]
-    batches = entry["batches"]
-    pet_obj = next((p for p in st.session_state.pets if p.name == pname), None)
-    icon    = SPECIES_ICON.get(pet_obj.species if pet_obj else "other", "🐾")
-    status  = plan.get_completion_status()
-    prog    = status["complete"] / status["total"] if status["total"] > 0 else 0.0
-
-    with st.container():
-        # Card header
-        h1, h2 = st.columns([4, 2])
-        with h1:
-            st.markdown(f"### {icon} {pname}")
-        with h2:
-            st.markdown(
-                f"<div style='text-align:right;padding-top:10px;font-size:0.8rem;color:#94a3b8'>"
-                f"{status['complete']}/{status['total']} complete"
-                f"{'&nbsp;·&nbsp;' + str(status['remaining']) + ' left' if status['remaining'] else ' — all done 🎉'}"
-                f"</div>",
-                unsafe_allow_html=True,
+        # ── Sort selector ──────────────────────────────────────────────
+        sort_col, _ = st.columns([2, 5])
+        with sort_col:
+            schedule_sort = st.radio(
+                "View by", ["⏱ time", "🔴 priority", "🗂 batched", "📋 consolidated"],
+                horizontal=True, label_visibility="collapsed",
             )
-        st.progress(prog)
+        sort_key = schedule_sort.split(" ")[1]   # strip emoji
 
-        if not plan.scheduled_tasks:
-            st.warning(f"No tasks could be scheduled for **{pname}** — check your busy blocks.")
+        st.write("")
+
+        # ── Consolidated view ──────────────────────────────────────────
+        if sort_key == "consolidated":
+            total_all    = sum(len(e["plan"].scheduled_tasks) for e in st.session_state.plans.values())
+            complete_all = sum(
+                sum(1 for s in e["plan"].scheduled_tasks if s.is_complete)
+                for e in st.session_state.plans.values()
+            )
+            remaining_all = total_all - complete_all
+            prog_all      = complete_all / total_all if total_all > 0 else 0.0
+
+            ca, cb = st.columns([4, 2])
+            with ca:
+                st.markdown("### 📋 All Pets — Combined Schedule")
+            with cb:
+                st.markdown(
+                    f"<div style='text-align:right;padding-top:10px;font-size:0.8rem;color:#94a3b8'>"
+                    f"{complete_all}/{total_all} complete"
+                    f"{'&nbsp;·&nbsp;' + str(remaining_all) + ' left' if remaining_all else ' — all done 🎉'}"
+                    f"</div>",
+                    unsafe_allow_html=True,
+                )
+            st.progress(prog_all)
+            st.write("")
+            _render_consolidated(st.session_state.plans)
+        else:
+            # ── Per-pet schedule cards ─────────────────────────────────
+            for pname, entry in st.session_state.plans.items():
+                plan    = entry["plan"]
+                load    = entry["load"]
+                batches = entry["batches"]
+                pet_obj = next((p for p in st.session_state.pets if p.name == pname), None)
+                icon    = SPECIES_ICON.get(pet_obj.species if pet_obj else "other", "🐾")
+                status  = plan.get_completion_status()
+                prog    = status["complete"] / status["total"] if status["total"] > 0 else 0.0
+
+                with st.container():
+                    h1, h2 = st.columns([4, 2])
+                    with h1:
+                        st.markdown(f"### {icon} {pname}")
+                    with h2:
+                        st.markdown(
+                            f"<div style='text-align:right;padding-top:10px;font-size:0.8rem;color:#94a3b8'>"
+                            f"{status['complete']}/{status['total']} complete"
+                            f"{'&nbsp;·&nbsp;' + str(status['remaining']) + ' left' if status['remaining'] else ' — all done 🎉'}"
+                            f"</div>",
+                            unsafe_allow_html=True,
+                        )
+                    st.progress(prog)
+
+                    if not plan.scheduled_tasks:
+                        st.warning(f"No tasks could be scheduled for **{pname}** — check your busy blocks.")
+                        st.divider()
+                        continue
+
+                    if load["overloaded"]:
+                        st.warning(
+                            f"⏱ **Day overloaded:** {load['total_task_minutes']} min of tasks, "
+                            f"only {load['available_minutes']} min available."
+                        )
+                        if load["deferred_suggestions"]:
+                            with st.expander(f"📋 {len(load['deferred_suggestions'])} deferral suggestion(s)"):
+                                for dt in load["deferred_suggestions"]:
+                                    dl1, dl2, dl3 = st.columns([4, 1, 1])
+                                    with dl1:
+                                        st.markdown(
+                                            f"{PRIORITY_BADGE.get(dt.priority, '')} **{dt.name}** "
+                                            f"· {dt.duration} min · _{dt.priority}_"
+                                        )
+                                    with dl2:
+                                        if st.button("Keep", key=f"keep_{pname}_{dt.name}"):
+                                            entry["deferred_decisions"][dt.name] = "keep"; st.rerun()
+                                    with dl3:
+                                        if st.button("Defer", key=f"defer_{pname}_{dt.name}"):
+                                            entry["deferred_decisions"][dt.name] = "defer"; st.rerun()
+
+                    st.markdown(
+                        "<div style='display:flex;gap:10px;padding:4px 12px;"
+                        "font-size:0.7rem;font-weight:700;letter-spacing:0.06em;"
+                        "text-transform:uppercase;color:#94a3b8;margin-bottom:2px;'>"
+                        "<span style='min-width:16px'></span>"
+                        "<span style='min-width:108px'>Time</span>"
+                        "<span style='flex:1'>Task</span>"
+                        "<span style='min-width:46px;text-align:right'>Dur</span>"
+                        "<span style='min-width:90px'></span>"
+                        "</div>",
+                        unsafe_allow_html=True,
+                    )
+
+                    if sort_key == "time":
+                        _render_flat(entry["scheduler"].sort_by_time(plan), pname)
+                    elif sort_key == "priority":
+                        _render_flat(
+                            sorted(plan.scheduled_tasks, key=lambda s: PRIORITY_ORDER.get(s.task.priority, 99)),
+                            pname,
+                        )
+                    elif sort_key == "batched":
+                        _render_batched(batches, plan, pname)
+
+                    with st.expander("💡 Why this schedule?"):
+                        st.text(entry["explanation"])
+
+                    st.divider()
+
+# ══════════════════════════════════════════════════════════════════════
+# HEALTH CHECK TAB
+# ══════════════════════════════════════════════════════════════════════
+with tab_health:
+    st.markdown("### 🩺 Pet Health Check")
+    st.markdown(
+        "Describe something you've noticed about your pet. "
+        "The AI will retrieve relevant health information and walk through a "
+        "4-step analysis to identify likely causes and next steps."
+    )
+    st.divider()
+
+    # Pet selector — pull from registered pets or allow free entry
+    pet_names = [p.name for p in st.session_state.pets]
+    species_map = {p.name: p.species for p in st.session_state.pets}
+
+    hc1, hc2 = st.columns([2, 3])
+    with hc1:
+        selected_pet = st.selectbox("Which pet?", pet_names, key="hc_pet")
+        species = species_map.get(selected_pet, "dog")
+        st.caption(f"Species: {species}")
+    with hc2:
+        observation = st.text_area(
+            "What did you notice?",
+            placeholder="e.g. my dog has been eating grass and vomiting this morning…",
+            height=100,
+            key="hc_obs",
+        )
+
+    run_btn = st.button("🔍 Run Health Check", type="primary", key="hc_run")
+
+    if run_btn:
+        if not observation or len(observation.strip()) < 5:
+            st.warning("Please describe a symptom or observation (at least a few words).")
+        else:
             st.divider()
-            continue
+            st.markdown("#### Agent Steps")
 
-        # Day load warning + deferral UI
-        if load["overloaded"]:
-            st.warning(
-                f"⏱ **Day overloaded:** {load['total_task_minutes']} min of tasks, "
-                f"only {load['available_minutes']} min available."
-            )
-            if load["deferred_suggestions"]:
-                with st.expander(f"📋 {len(load['deferred_suggestions'])} deferral suggestion(s)"):
-                    for dt in load["deferred_suggestions"]:
-                        dl1, dl2, dl3 = st.columns([4, 1, 1])
-                        with dl1:
-                            st.markdown(
-                                f"{PRIORITY_BADGE.get(dt.priority, '')} **{dt.name}** "
-                                f"· {dt.duration} min · _{dt.priority}_"
-                            )
-                        with dl2:
-                            if st.button("Keep", key=f"keep_{pname}_{dt.name}"):
-                                entry["deferred_decisions"][dt.name] = "keep"; st.rerun()
-                        with dl3:
-                            if st.button("Defer", key=f"defer_{pname}_{dt.name}"):
-                                entry["deferred_decisions"][dt.name] = "defer"; st.rerun()
+            steps_placeholder = st.empty()
+            steps_html = ""
 
-        # Column headers
-        st.markdown(
-            "<div style='display:flex;gap:10px;padding:4px 12px;"
-            "font-size:0.7rem;font-weight:700;letter-spacing:0.06em;"
-            "text-transform:uppercase;color:#94a3b8;margin-bottom:2px;'>"
-            "<span style='min-width:16px'></span>"
-            "<span style='min-width:108px'>Time</span>"
-            "<span style='flex:1'>Task</span>"
-            "<span style='min-width:46px;text-align:right'>Dur</span>"
-            "<span style='min-width:90px'></span>"
-            "</div>",
-            unsafe_allow_html=True,
-        )
+            SEVERITY_COLOR = {"low": "#22c55e", "medium": "#f59e0b", "high": "#ef4444"}
 
-        # Schedule rows
-        if sort_key == "time":
-            _render_flat(entry["scheduler"].sort_by_time(plan), pname)
-        elif sort_key == "priority":
-            _render_flat(
-                sorted(plan.scheduled_tasks, key=lambda s: PRIORITY_ORDER.get(s.task.priority, 99)),
-                pname,
-            )
-        elif sort_key == "batched":
-            _render_batched(batches, plan, pname)
+            result = None
+            gen = run_health_check(selected_pet, species, observation)
+            try:
+                while True:
+                    step = next(gen)
+                    steps_html += (
+                        f"<div style='padding:6px 12px;margin:4px 0;border-radius:8px;"
+                        f"background:#1e293b;font-size:0.85rem;'>"
+                        f"<b>Step {step.step_number}: {step.name}</b> — {step.detail}"
+                        f"{'<br><span style=\"color:#94a3b8;font-size:0.8rem\">→ ' + step.result + '</span>' if step.result else ''}"
+                        f"</div>"
+                    )
+                    steps_placeholder.markdown(steps_html, unsafe_allow_html=True)
+            except StopIteration as e:
+                result = e.value
 
-        with st.expander("💡 Why this schedule?"):
-            st.text(entry["explanation"])
+            if result and result.error:
+                st.error(result.error)
+            elif result:
+                st.divider()
+                st.markdown("#### Analysis")
 
-        st.divider()
+                sev_color = SEVERITY_COLOR.get(result.severity, "#94a3b8")
+                st.markdown(
+                    f"<div style='display:flex;gap:12px;align-items:center;margin-bottom:12px;'>"
+                    f"<span style='font-size:0.8rem;font-weight:700;padding:3px 12px;"
+                    f"border-radius:20px;background:{sev_color}22;color:{sev_color};"
+                    f"border:1px solid {sev_color}55;'>"
+                    f"{result.severity.upper()} SEVERITY</span>"
+                    f"<span style='font-size:0.8rem;color:#94a3b8;'>Category: {result.symptom_category}</span>"
+                    f"</div>",
+                    unsafe_allow_html=True,
+                )
+
+                st.markdown(f"**Likely Cause**\n\n{result.likely_cause}")
+                st.markdown(f"**Recommendation**\n\n{result.recommendation}")
+
+                if result.vet_required:
+                    st.error("⚠️ **Veterinary attention recommended.** Please contact your vet.")
+
+                if result.sources:
+                    with st.expander("📚 Knowledge sources used"):
+                        for src in result.sources:
+                            st.markdown(f"- `{src}`")
+
+                st.caption("This tool is for informational purposes only and does not replace professional veterinary advice.")
