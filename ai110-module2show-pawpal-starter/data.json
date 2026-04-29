@@ -1,0 +1,119 @@
+{
+  "owner": {
+    "name": "Jessica",
+    "availability": [
+      {
+        "label": "Work",
+        "start_time": "17:00",
+        "end_time": "19:00",
+        "frequency": "weekdays"
+      }
+    ]
+  },
+  "pets": [
+    {
+      "name": "Mochi",
+      "species": "dog",
+      "age": 4,
+      "care_tasks": [
+        {
+          "name": "Morning Walk",
+          "task_type": "exercise",
+          "priority": "high",
+          "duration": 30,
+          "frequency": "daily",
+          "time_preference": null,
+          "status": "incomplete",
+          "due_date": null
+        },
+        {
+          "name": "Morning Feeding",
+          "task_type": "nutrition",
+          "priority": "high",
+          "duration": 10,
+          "frequency": "daily",
+          "time_preference": null,
+          "status": "incomplete",
+          "due_date": null
+        },
+        {
+          "name": "Evening Feeding",
+          "task_type": "nutrition",
+          "priority": "high",
+          "duration": 10,
+          "frequency": "daily",
+          "time_preference": "evening",
+          "status": "incomplete",
+          "due_date": null
+        },
+        {
+          "name": "Medication",
+          "task_type": "medication",
+          "priority": "high",
+          "duration": 5,
+          "frequency": "daily",
+          "time_preference": null,
+          "status": "incomplete",
+          "due_date": null
+        },
+        {
+          "name": "Grooming",
+          "task_type": "hygiene",
+          "priority": "low",
+          "duration": 45,
+          "frequency": "weekly",
+          "time_preference": null,
+          "status": "incomplete",
+          "due_date": null
+        }
+      ]
+    },
+    {
+      "name": "Luna",
+      "species": "cat",
+      "age": 2,
+      "care_tasks": [
+        {
+          "name": "Feeding",
+          "task_type": "nutrition",
+          "priority": "high",
+          "duration": 20,
+          "frequency": "daily",
+          "time_preference": null,
+          "status": "incomplete",
+          "due_date": null
+        },
+        {
+          "name": "Litter Box",
+          "task_type": "hygiene",
+          "priority": "medium",
+          "duration": 20,
+          "frequency": "daily",
+          "time_preference": null,
+          "status": "incomplete",
+          "due_date": null
+        },
+        {
+          "name": "Playtime",
+          "task_type": "enrichment",
+          "priority": "medium",
+          "duration": 20,
+          "frequency": "daily",
+          "time_preference": null,
+          "status": "incomplete",
+          "due_date": null
+        },
+        {
+          "name": "Vet Medication",
+          "task_type": "medication",
+          "priority": "high",
+          "duration": 5,
+          "frequency": "daily",
+          "time_preference": null,
+          "status": "incomplete",
+          "due_date": null
+        }
+      ]
+    }
+  ]
+}
