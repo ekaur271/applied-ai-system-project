@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"from planner import run_planner; from llm_client import GeminiClient; from docubot import DocuBot; print\\('All imports OK'\\)\")",
+      "Bash(pip3 install *)",
+      "Bash(python3 -m venv /Users/ekum/Codepath/prj4/applied-ai-system-project/ai110-module4tinker-docubot-starter/venv)",
+      "Bash(python3 -m venv venv)",
+      "Bash(venv/bin/pip install *)",
+      "Bash(venv/bin/python3 -c \"from planner import run_planner; from llm_client import GeminiClient; from docubot import DocuBot; print\\('All imports OK'\\)\")",
+      "Bash(git -C /Users/ekum/Codepath/prj4/applied-ai-system-project status)",
+      "Bash(venv/bin/python3 main.py)",
+      "Bash(venv/bin/python3 evaluation.py)"
+    ]
+  }
+}
