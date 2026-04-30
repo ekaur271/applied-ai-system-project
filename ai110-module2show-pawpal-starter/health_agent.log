@@ -118,3 +118,4 @@
 2026-04-29 20:12:56,826 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
 2026-04-29 20:12:59,603 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
 2026-04-29 20:12:59,604 INFO HealthCheck | pet=TestDog species=dog category=unknown severity=medium vet_required=False
+2026-04-29 20:25:40,858 WARNING Rejected off-topic observation for Mochi: 'my car is breaking down'

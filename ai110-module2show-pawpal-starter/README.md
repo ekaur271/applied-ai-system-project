@@ -279,6 +279,12 @@ ai110-module2show-pawpal-starter/
 
 [▶ Watch the demo walkthrough](../assets/PawPal+_video.mov)
 
+### Guardrail Example
+
+Off-topic input rejected before any API call is made:
+
+![Guardrail screenshot](../assets/image.png)
+
 ---
 
 *This project does not provide veterinary advice. Always consult a licensed veterinarian for your pet's health.*
