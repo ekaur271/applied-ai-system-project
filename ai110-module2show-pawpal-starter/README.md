@@ -70,9 +70,11 @@ Owner Input (Streamlit UI)
 ## Setup
 
 ```bash
-# 1. Clone the repo and enter the project folder
+# 1. Clone the repo, switch to the project branch, and enter the project folder
 git clone https://github.com/ekaur271/applied-ai-system-project.git
-cd applied-ai-system-project/ai110-module2show-pawpal-starter
+cd applied-ai-system-project
+git checkout second_branch
+cd ai110-module2show-pawpal-starter
 
 # 2. Create and activate a virtual environment
 python3 -m venv .venv
@@ -101,7 +103,7 @@ streamlit run app.py
 ```
 Step 1: Classify Symptom        → Category: digestive
 Step 2: Retrieve Knowledge      → 4 chunks from dogs_digestive.md, dogs_behavioral.md
-Step 3: Analyze with Claude     → Severity: low
+Step 3: Analyze with Claude     → Severity: medium
 Step 4: Validate Output         → vet_required=False | guardrails applied
 
 MEDIUM SEVERITY
@@ -193,24 +195,58 @@ python -m pytest tests/test_pawpal.py -v
 
 ## Reflection
 
-### How I Used AI During Development
+### AI Collaboration
 
-I used Claude as a collaborator throughout this project — for design, implementation, and debugging.
+I used Claude throughout this project — mostly to help me figure out how to structure things I hadn't built before and to write code I could then read through and understand.
 
-**One instance where AI was helpful:** When I described wanting a "4-step agent that shows its work," Claude immediately structured the generator pattern (`yield AgentStep` → `return HealthAnalysis`) which made streaming intermediate steps to the Streamlit UI clean and testable. I wouldn't have reached that pattern as quickly on my own.
+**One instance where AI was helpful:** I knew I wanted the health check to show each step as it was happening instead of just showing a final result. I wasn't sure how to do that in Streamlit without the whole page freezing. Claude suggested using a Python generator — basically `yield` each step as it finishes and `return` the final result — and that actually worked really cleanly. I don't think I would've figured that out on my own, at least not quickly.
 
-**One instance where AI's suggestion was flawed:** Claude initially wrote the analysis prompt with `"Return only valid JSON, no markdown fences"` — but then returned markdown-fenced JSON anyway when actually called. The fix (stripping fences before parsing) was simple, but it highlighted that model instruction-following is unreliable and output parsing always needs defensive handling.
+**One instance where AI's suggestion was flawed:** Claude wrote the prompt to tell the model to return plain JSON with no markdown formatting. When I ran it for the first time it came back wrapped in code fences anyway and the whole thing crashed. The fix was easy once I knew what was wrong, but it was kind of a wake-up call that you can't just tell a model to do something and trust that it will. You have to handle whatever it actually sends back.
 
-### Limitations
+### Limitations and Biases
 
-- **Knowledge base is static and small.** The 5 markdown files cover common symptoms but can't replace a real veterinary database. Unusual or rare symptoms will fall back to Claude's general knowledge with no retrieved context.
-- **Keyword retrieval misses semantic matches.** A query like "Mochi won't touch her bowl" won't score against "loss of appetite" because the words don't overlap. Embedding-based retrieval would fix this.
-- **No memory across sessions.** Each health check is independent. The system can't notice patterns like "this dog has shown digestive symptoms 3 times this week."
-- **Haiku is not a medical model.** The system is informational only. All outputs include a disclaimer and the system always defers to veterinary professionals for serious cases.
+- **The knowledge base is really small.** I only wrote 5 markdown files covering basic dog and cat symptoms. If someone types in something unusual or less common, the system has no relevant docs to pull from and just relies on what Claude already knows, which might not be accurate.
+- **Keyword matching breaks down with natural language.** If someone types "my dog won't eat" that might not match well against a chunk that says "loss of appetite." The retrieval works better when people use more specific words, which isn't how most people actually talk.
+- **It doesn't remember anything between sessions.** Every health check starts from scratch. If the same pet has had the same symptom multiple times, the system has no idea — it just sees one message at a time.
+- **The model isn't trained on veterinary data.** Claude Haiku is a small general-purpose model. I shaped its responses with examples in the prompt but it's not actually a medical system and shouldn't be treated like one.
 
-### Could this be misused?
+### Could This Be Misused?
 
-An owner could use the tool as a substitute for a vet, delaying care for a serious condition. The system mitigates this by always appending a disclaimer, forcing vet referrals for high-severity keywords, and never claiming diagnostic certainty. The recommendation framing is deliberately "contact your vet" rather than "your pet has X."
+The most realistic risk is someone reading "low severity" and deciding their pet is fine when it actually isn't. To try to prevent that I added a keyword guardrail that forces the severity to high and adds a vet warning whenever the input includes words like "blood," "seizure," or "can't urinate" — that happens in the code, not in the model, so it can't be overridden by a bad response. Every output also ends with a reminder that this isn't real veterinary advice.
+
+### What Surprised Me While Testing
+
+Honestly the first surprise was just how fast things broke. I had tested the imports, confirmed the API key worked, and felt pretty good about it — and then the first actual run crashed because the JSON parser got a code block instead of plain JSON. I hadn't thought about that at all. It made me realize that testing pieces individually doesn't tell you much about whether the whole thing works.
+
+The other thing that surprised me was that the simplest guardrails worked the best. The empty input check and the off-topic check both passed immediately and didn't even touch the API. I expected those to be the hard ones to get right but they were just a few lines of string checking. Meanwhile getting the model to return clean JSON took multiple tries.
+
+I also didn't expect the vague input test to work as well as it did. "My dog seems off today" felt like it would just confuse the system but it still came back with a reasonable response. The examples I put in the prompt seemed to help more than I expected.
+
+### What This Taught Me About AI and Problem-Solving
+
+This was my first time building something where an LLM is actually part of a real working app, not just a script that calls an API. The thing that stood out most to me is how much of the work has nothing to do with the model itself. Writing the knowledge docs, structuring the retrieval, deciding what gets validated in code vs. what gets decided by the AI — that's where most of the time went. The model call is almost the easy part. What's hard is making sure the inputs are clean, the outputs are handled correctly, and there are guardrails for when things go wrong. I came in thinking AI engineering was mostly about prompting. I'm leaving thinking it's mostly about the stuff around the prompt.
+
+---
+
+## Portfolio
+
+**GitHub:** [github.com/ekaur271/applied-ai-system-project](https://github.com/ekaur271/applied-ai-system-project) — branch: `second_branch`
+
+**What this project says about me as an AI engineer:**
+I'm a CS student still learning how all of this works, but this project showed me that I can take something I already built and make it genuinely smarter — not just by plugging in a model but by thinking through where AI actually helps and where regular code is more reliable. I ran into real problems, debugged them, added tests I hadn't thought of originally, and ended up with something that works consistently. I want to keep building things that prove they work rather than just looking like they do.
+
+---
+
+## Future Ideas
+
+There are a lot of directions this could go that I didn't have time to build out:
+
+- **Follow-up questions** — right now the agent takes one observation and gives one answer. A better version would have the AI ask clarifying questions before giving a recommendation, like "how long has this been going on?" or "is your pet still drinking water?" That would get closer to how a real triage conversation works.
+- **Symptom history and tracking** — the system currently has no memory between sessions. It would be really useful to log symptoms over time so you could see patterns, like if the same pet has had digestive issues three weeks in a row. That kind of history would also make the AI's responses more accurate since it would have context.
+- **Voice to text input** — typing out a symptom description isn't always easy, especially if you're worried about your pet. Adding a voice input option would make the tool feel more natural to use.
+- **Better retrieval** — keyword matching misses a lot of cases where the owner uses different words than what's in the docs. Switching to embedding-based retrieval would make the RAG step much more accurate and handle natural language better.
+- **Vet connection** — the system currently just tells you to "contact your vet." A more useful version could have a direct way to find nearby vets, send a summary of the symptoms to your vet, or even book an appointment. The AI-generated summary could actually be a useful thing to share with a vet as a starting point.
+- **More species** — the knowledge base only covers dogs and cats right now. Adding docs for rabbits, birds, and other common pets would make the tool useful for more people.
 
 ---
 
@@ -239,9 +275,9 @@ ai110-module2show-pawpal-starter/
 
 ---
 
-## Loom Walkthrough
+## Demo Walkthrough
 
-*(Add your Loom link here before submitting)*
+[▶ Watch the demo walkthrough](../assets/PawPal+_video.mov)
 
 ---
 

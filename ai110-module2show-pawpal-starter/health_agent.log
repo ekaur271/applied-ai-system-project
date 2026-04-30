@@ -57,3 +57,64 @@
 2026-04-29 17:05:26,927 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
 2026-04-29 17:05:29,488 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
 2026-04-29 17:05:29,489 INFO HealthCheck | pet=TestDog species=dog category=unknown severity=low vet_required=False
+2026-04-29 20:04:33,258 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:04:34,647 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:04:34,649 INFO HealthCheck | pet=Mochi species=dog category=digestive severity=low vet_required=False
+2026-04-29 20:05:50,458 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:05:52,270 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:05:52,272 INFO HealthCheck | pet=Mochi species=dog category=digestive severity=high vet_required=True
+2026-04-29 20:06:42,714 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:06:45,314 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:06:45,316 INFO HealthCheck | pet=Luna species=cat category=behavioral severity=high vet_required=True
+2026-04-29 20:07:14,667 WARNING Rejected off-topic observation for Luna: 'my car won't start and makes a clicking noise'
+2026-04-29 20:07:45,333 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:07:46,755 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:07:46,757 INFO HealthCheck | pet=TestDog species=dog category=digestive severity=low vet_required=False
+2026-04-29 20:07:47,372 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:07:49,009 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:07:49,010 INFO HealthCheck | pet=TestCat species=cat category=digestive severity=high vet_required=True
+2026-04-29 20:07:49,789 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:07:51,157 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:07:51,158 INFO HealthCheck | pet=TestDog species=dog category=physical severity=medium vet_required=False
+2026-04-29 20:07:51,876 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:07:54,025 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:07:54,027 INFO HealthCheck | pet=TestDog species=dog category=digestive severity=high vet_required=True
+2026-04-29 20:07:54,643 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:07:56,319 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:07:56,321 INFO HealthCheck | pet=TestCat species=cat category=digestive severity=high vet_required=True
+2026-04-29 20:07:56,321 WARNING Rejected empty/short observation for TestDog
+2026-04-29 20:07:56,321 WARNING Rejected off-topic observation for TestDog: 'asdfjkl qwerty zxcvbn'
+2026-04-29 20:07:56,321 WARNING Rejected off-topic observation for TestDog: 'my car won't start and makes a clicking noise'
+2026-04-29 20:07:56,996 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:07:59,453 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:07:59,454 INFO HealthCheck | pet=TestDog species=dog category=unknown severity=low vet_required=False
+2026-04-29 20:11:09,528 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:11:11,603 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:11:11,604 INFO HealthCheck | pet=Mochi species=dog category=digestive severity=medium vet_required=False
+2026-04-29 20:11:38,234 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:11:40,333 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:11:40,335 INFO HealthCheck | pet=Mochi species=dog category=digestive severity=high vet_required=True
+2026-04-29 20:12:08,813 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:12:11,454 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:12:11,456 INFO HealthCheck | pet=Luna species=cat category=behavioral severity=medium vet_required=True
+2026-04-29 20:12:45,051 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:12:46,791 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:12:46,792 INFO HealthCheck | pet=TestDog species=dog category=digestive severity=low vet_required=False
+2026-04-29 20:12:47,635 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:12:49,147 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:12:49,148 INFO HealthCheck | pet=TestCat species=cat category=digestive severity=high vet_required=True
+2026-04-29 20:12:49,717 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:12:51,395 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:12:51,397 INFO HealthCheck | pet=TestDog species=dog category=physical severity=medium vet_required=False
+2026-04-29 20:12:52,116 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:12:53,709 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:12:53,710 INFO HealthCheck | pet=TestDog species=dog category=digestive severity=high vet_required=True
+2026-04-29 20:12:54,433 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:12:56,008 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:12:56,009 INFO HealthCheck | pet=TestCat species=cat category=unknown severity=high vet_required=True
+2026-04-29 20:12:56,010 WARNING Rejected empty/short observation for TestDog
+2026-04-29 20:12:56,010 WARNING Rejected off-topic observation for TestDog: 'asdfjkl qwerty zxcvbn'
+2026-04-29 20:12:56,010 WARNING Rejected off-topic observation for TestDog: 'my car won't start and makes a clicking noise'
+2026-04-29 20:12:56,826 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:12:59,603 INFO HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-04-29 20:12:59,604 INFO HealthCheck | pet=TestDog species=dog category=unknown severity=medium vet_required=False
